@@ -1,3 +1,5 @@
+// App.js
+
 import React from 'react';
 import VoiceComponent from './VoiceComponent';  // 경로 확인
 
