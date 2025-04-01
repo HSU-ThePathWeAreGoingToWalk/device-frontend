@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid"; // Import UUID library
+import Map from "./Map"; // Import the Map component
 
 // API URL 관리
 const API_URL = "http://localhost:8000/chat"; // Replace with the actual API URL
@@ -43,6 +44,11 @@ const LocationComponent = ({ data }: { data: LocationResponse }) => (
   <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px" }}>
     <h3>📍 위치 찾기</h3>
     <p>{data.conversation_response}</p>
+    <Map 
+      coordinates={data.coordinates}
+      type="location"
+      places={data.places}
+    />
     <ul>
       {data.places.map((place, index) => (
         <li key={index}>✅ {place}</li>
@@ -56,6 +62,10 @@ const RouteComponent = ({ data }: { data: RouteResponse }) => (
   <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#f0fff0" }}>
     <h3>🗺 길찾기</h3>
     <p>{data.conversation_response}</p>
+    <Map 
+      coordinates={data.coordinates}
+      type="route"
+    />
     <p>
       <strong>🚶 이동 경로:</strong> {data.routes_text}
     </p>
