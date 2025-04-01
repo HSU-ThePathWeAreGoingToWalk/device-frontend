@@ -120,8 +120,36 @@ const ResponseComponent = () => {
   const [selectedType, setSelectedType] = useState<QuestionType | null>(null);
   const [responseData, setResponseData] = useState<any>(null);
   const [userMessage, setUserMessage] = useState(""); // State for user input
-  const [chatResponse, setChatResponse] = useState<string | null>(null); // State for chatbot response
+  const [chatResponse, setChatResponse] = useState<string>("질문하세요...."); // Default chatbot response
   const [isLoading, setIsLoading] = useState(false);
+
+  // "감지한 사람 수" 상태 관리
+  const [detectedPeople, setDetectedPeople] = useState<number>(0); // 초기 값은 0
+
+  // 사람 수 증가 함수
+  const increasePeople = () => {
+    setDetectedPeople((prev) => {
+      const newCount = prev < 10 ? prev + 1 : prev; // 최대값 10
+      if (prev === 0 && newCount > 0) {
+        // 0명에서 1명 이상으로 변경될 때
+        setChatResponse("오늘은 어디 가시나요?");
+      }
+      return newCount;
+    });
+  };
+
+  // 사람 수 감소 함수
+  const decreasePeople = () => {
+    setDetectedPeople((prev) => {
+      const newCount = prev > -1 ? prev - 1 : prev; // 최소값 -1
+      if (prev > 0 && newCount === 0) {
+        // 1명 이상에서 0명으로 변경될 때
+        resetSession(); // 세션 초기화
+        setChatResponse("질문하세요....");
+      }
+      return newCount;
+    });
+  };
 
   // Function to handle sending a message to the backend API
   const sendMessageToAPI = async () => {
@@ -172,7 +200,7 @@ const ResponseComponent = () => {
     setSessionId(newSessionId); // Update the session_id state
     setResponseData(null); // Clear previous responses
     setSelectedType(null); // Reset selected type
-    setChatResponse(null); // Clear chat response
+    setChatResponse("질문하세요...."); // Reset chatbot response
     setUserMessage(""); // Clear user input
     console.log("Session reset. New session_id:", newSessionId);
   };
@@ -180,7 +208,7 @@ const ResponseComponent = () => {
   // 응답 데이터를 기반으로 적절한 컴포넌트를 렌더링
   const renderComponent = () => {
     if (!responseData) {
-      return <h3>질문하세요....</h3>;
+      return <h3>{chatResponse}</h3>;
     }
 
     switch (selectedType) {
@@ -244,6 +272,25 @@ const ResponseComponent = () => {
           </div>
         )}
         <div style={{ marginTop: "20px" }}>{renderComponent()}</div>
+      </div>
+
+      {/* 감지한 사람 수 UI */}
+      <div style={{ marginTop: "40px", textAlign: "center" }}>
+        <h2>감지한 사람 수: {detectedPeople}</h2>
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "10px" }}>
+          <button
+            onClick={decreasePeople}
+            style={{ padding: "10px 20px", backgroundColor: "#FF5722", color: "white", border: "none", borderRadius: "5px" }}
+          >
+            -1
+          </button>
+          <button
+            onClick={increasePeople}
+            style={{ padding: "10px 20px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px" }}
+          >
+            +1
+          </button>
+        </div>
       </div>
     </div>
   );
