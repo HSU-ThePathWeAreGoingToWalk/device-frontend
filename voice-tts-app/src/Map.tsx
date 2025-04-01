@@ -48,6 +48,7 @@ const Map = ({ coordinates, type, places }: MapProps) => {
         new window.kakao.maps.LatLng(lat, lng)
       );
 
+      // Polyline 그리기
       new window.kakao.maps.Polyline({
         path: linePath,
         strokeWeight: 3,
@@ -56,6 +57,7 @@ const Map = ({ coordinates, type, places }: MapProps) => {
         strokeStyle: 'solid',
       }).setMap(map);
 
+      // 출발 마커
       const startMarker = new window.kakao.maps.Marker({
         position: linePath[0],
         image: new window.kakao.maps.MarkerImage(
@@ -65,6 +67,7 @@ const Map = ({ coordinates, type, places }: MapProps) => {
       });
       startMarker.setMap(map);
 
+      // 도착 마커
       const endMarker = new window.kakao.maps.Marker({
         position: linePath[linePath.length - 1],
         image: new window.kakao.maps.MarkerImage(
@@ -73,6 +76,11 @@ const Map = ({ coordinates, type, places }: MapProps) => {
         ),
       });
       endMarker.setMap(map);
+
+      // 출발지와 도착지가 한 화면에 들어오도록 지도 범위 설정
+      const bounds = new window.kakao.maps.LatLngBounds();
+      linePath.forEach((point) => bounds.extend(point)); // 모든 경로를 bounds에 추가
+      map.setBounds(bounds); // 지도 범위 설정
     }
   }, [coordinates, type, places]);
 
