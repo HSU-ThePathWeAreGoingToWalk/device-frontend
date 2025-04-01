@@ -58,19 +58,29 @@ const LocationComponent = ({ data }: { data: LocationResponse }) => (
 );
 
 // 길찾기 응답 컴포넌트
-const RouteComponent = ({ data }: { data: RouteResponse }) => (
-  <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#f0fff0" }}>
-    <h3>🗺 길찾기</h3>
-    <p>{data.conversation_response}</p>
-    <Map 
-      coordinates={data.coordinates}
-      type="route"
-    />
-    <p>
-      <strong>🚶 이동 경로:</strong> {data.routes_text}
-    </p>
-  </div>
-);
+const RouteComponent = ({ data }: { data: RouteResponse }) => {
+  const routeSteps = data.routes_text.split(/\d+\.\s/).filter((step) => step.trim() !== "");
+
+  return (
+    <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#f0fff0" }}>
+      <h3>🗺 길찾기</h3>
+      <p>{data.conversation_response}</p>
+      <Map 
+        coordinates={data.coordinates}
+        type="route"
+      />
+      <p>
+        <strong>🚶 이동 경로:</strong>
+      </p>
+      <ol>
+        {routeSteps.map((step, index) => (
+          <li key={index}>{step.trim()}</li>
+        ))}
+        <li><strong>도착!</strong></li>
+      </ol>
+    </div>
+  );
+};
 
 // 버스 응답 컴포넌트
 const BusComponent = ({ data }: { data: BusResponse }) => (
