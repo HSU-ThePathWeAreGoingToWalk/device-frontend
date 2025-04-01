@@ -9,7 +9,6 @@ function App() {
     <div className="App">
       {/* <h1>Voice TTS Application</h1>
       <VoiceComponent /> */}
-      <h1>Response Select</h1>
       <Response />
     </div>
   );

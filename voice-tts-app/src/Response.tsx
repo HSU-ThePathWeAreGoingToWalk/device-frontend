@@ -41,7 +41,7 @@ enum QuestionType {
 
 // 위치 응답 컴포넌트
 const LocationComponent = ({ data }: { data: LocationResponse }) => (
-  <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px" }}>
+  <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
     <h3>📍 위치 찾기</h3>
     <p>{data.conversation_response}</p>
     <Map 
@@ -62,7 +62,7 @@ const RouteComponent = ({ data }: { data: RouteResponse }) => {
   const routeSteps = data.routes_text.split(/\d+\.\s/).filter((step) => step.trim() !== "");
 
   return (
-    <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#f0fff0" }}>
+    <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
       <h3>🗺 길찾기</h3>
       <p>{data.conversation_response}</p>
       <Map 
@@ -108,8 +108,8 @@ const BusComponent = ({ data }: { data: BusResponse }) => (
 
 // 공지 응답 컴포넌트
 const NoticeComponent = ({ data }: { data: NoticeResponse }) => (
-  <div style={{ border: "1px solid #FF9800", padding: "10px", borderRadius: "5px", backgroundColor: "#FFF3E0" }}>
-    <h3>📢 공지사항</h3>
+  <div style={{ border: "1px solid #FF9800", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
+    <h3>📢 공지사항 및 일상</h3>
     <p>{data.response}</p>
   </div>
 );
@@ -180,7 +180,7 @@ const ResponseComponent = () => {
   // 응답 데이터를 기반으로 적절한 컴포넌트를 렌더링
   const renderComponent = () => {
     if (!responseData) {
-      return <p>응답을 가져오는 중...</p>;
+      return <h3>질문하세요....</h3>;
     }
 
     switch (selectedType) {
@@ -212,7 +212,7 @@ const ResponseComponent = () => {
   };
 
   return (
-    <div>
+    <div style={{ backgroundColor: "black", color: "white", minHeight: "100vh", padding: "20px" }}>
       <h1>챗봇 응답 테스트</h1>
       <div style={{ marginTop: "20px" }}>
         <h2>현재 세션 ID: {sessionId}</h2> {/* Display the session_id */}
@@ -221,12 +221,12 @@ const ResponseComponent = () => {
           value={userMessage}
           onChange={(e) => setUserMessage(e.target.value)}
           placeholder="챗봇에게 질문을 입력하세요."
-          style={{ width: "100%", height: "100px", marginBottom: "10px" }}
+          style={{ width: "100%", height: "100px", marginBottom: "10px", backgroundColor: "#333", color: "white", border: "1px solid #555" }}
         />
         <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={sendMessageToAPI}
-            style={{ padding: "10px 20px" }}
+            style={{ padding: "10px 20px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px" }}
             disabled={isLoading} // Disable button when loading
           >
             {isLoading ? "전송 중..." : "전송"}
