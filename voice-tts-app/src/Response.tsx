@@ -21,6 +21,7 @@ type BusResponse = {
   available_buses: string[];
   arrival_times: { busNumber: string; expectedArrival: string; arrivalTime: string }[];
   conversation_response: string;
+  alternative_path?: RouteResponse;
 };
 
 type NoticeResponse = {
@@ -100,61 +101,6 @@ const ResponseComponent = () => {
   const [chatResponse, setChatResponse] = useState<string | null>(null); // State for chatbot response
   const [isLoading, setIsLoading] = useState(false);
 
-  // 각 질문 타입에 대한 더미 데이터 예시
-  const dummyResponses = {
-    location: {
-      places: ["고흥군립중앙도서관", "고흥군새마을문고센터", "전라남도고흥평생교육관"],
-      coordinates: [
-        [127.288907094924, 34.6098828616271],
-        [127.27944226367, 34.601709031397],
-        [127.2772201755213, 34.60161313891003],
-      ],
-      conversation_response:
-        "제가 찾아본 결과, 고흥군립중앙도서관, 고흥군새마을문고센터, 전라남도고흥평생교육관 이 위치들이 있네요.",
-    },
-    route: {
-      routes_text: `고흥공용버스정류장까지의 경로:
-1. 출발지에서 송곡까지 도보로 이용
-2. 송곡에서 고흥터미널까지 농어촌:140 이용
-3. 고흥터미널에서 도착지까지 도보로 이용`,
-      coordinates: [
-        [127.294395, 34.620273],
-        [127.29453611111111, 34.620875],
-        [127.29453611111111, 34.620875],
-        [127.28093055555556, 34.60724444444445],
-        [127.28093055555556, 34.60724444444445],
-        [127.28106073602957, 34.60740510826495],
-      ],
-      conversation_response:
-        "출발지에서 도보 이동 후, 송곡을 거쳐 고흥터미널까지 농어촌:140을 이용하는 경로입니다.",
-    },
-    bus: {
-      available_buses: ["110", "111", "112", "113", "114", "115", "116", "143", "146", "150", "151"],
-      arrival_times: [
-        { busNumber: "112", expectedArrival: "5분 후", arrivalTime: "5" },
-        { busNumber: "110", expectedArrival: "10분 후", arrivalTime: "10" },
-        { busNumber: "111", expectedArrival: "15분 후", arrivalTime: "15" },
-      ],
-      conversation_response:
-        "고흥터미널(으)로 가는 버스는 110, 111, 112, 113, 114, 115, 116, 143, 146, 150, 151번이 있어요. 곧 도착하는 버스를 알려드릴게요.",
-    },
-    notice: {
-      response:
-        "고흥군에서는 어르신들을 위한 AI‧IoT 기반 비대면 건강관리 서비스를 제공하는 복지 사업이 있어요. 건강관리 앱과 스마트 기기를 통해 맞춤형 건강관리를 받으실 수 있답니다. 65세 이상의 어르신들은 참여하실 수 있고, 스마트기기도 제공된다고 하네요. 더 궁금한 점이 있으신가요?",
-      success: true,
-    },
-  };
-
-  // 질문 유형이 변경될 때마다, 서버 응답을 시뮬레이션
-  useEffect(() => {
-    if (selectedType) {
-      // 비동기 서버 호출을 모방
-      setTimeout(() => {
-        setResponseData(dummyResponses[selectedType]);
-      }, 500);
-    }
-  }, [selectedType]);
-
   // Function to handle sending a message to the backend API
   const sendMessageToAPI = async () => {
     if (!userMessage.trim()) return; // Prevent empty messages
@@ -164,7 +110,32 @@ const ResponseComponent = () => {
         message: userMessage,
         session_id: "1234", // Replace with actual session ID if needed
       });
-      setChatResponse(response.data.response); // Update chatbot response
+
+      // 서버 응답 데이터 디버깅
+      console.log("Server Response:", response.data);
+
+      // 응답 데이터 처리
+      const data = response.data;
+
+      // 응답 유형 추론
+      let type: QuestionType | null = null;
+      if (data.routes_text && data.coordinates) {
+        type = QuestionType.Route;
+      } else if (data.places && data.coordinates) {
+        type = QuestionType.Location;
+      } else if (data.available_buses && data.arrival_times) {
+        type = QuestionType.Bus;
+      } else if (data.response && data.success) {
+        type = QuestionType.Notice;
+      }
+
+      if (!type) {
+        console.error("Invalid response format:", data);
+        throw new Error("Invalid response format from server");
+      }
+
+      setSelectedType(type);
+      setResponseData(data);
     } catch (error) {
       console.error("Error communicating with the chatbot API:", error);
       setChatResponse("오류가 발생했습니다. 다시 시도해주세요."); // Error message
@@ -173,38 +144,43 @@ const ResponseComponent = () => {
     }
   };
 
-  // 선택된 질문 유형에 따라 컴포넌트를 렌더링하는 함수
+  // 응답 데이터를 기반으로 적절한 컴포넌트를 렌더링
   const renderComponent = () => {
-    if (!selectedType) {
-      return <p>질문 유형을 선택하세요.</p>;
-    }
     if (!responseData) {
       return <p>응답을 가져오는 중...</p>;
     }
+
     switch (selectedType) {
       case QuestionType.Location:
-        return <LocationComponent data={responseData} />;
+        return responseData.places.length > 0 ? (
+          <LocationComponent data={responseData} />
+        ) : (
+          <p>{responseData.conversation_response}</p>
+        );
       case QuestionType.Route:
-        return <RouteComponent data={responseData} />;
+        return responseData.coordinates.length > 0 ? (
+          <RouteComponent data={responseData} />
+        ) : (
+          <p>{responseData.conversation_response}</p>
+        );
       case QuestionType.Bus:
-        return <BusComponent data={responseData} />;
+        return responseData.available_buses.length > 0 ? (
+          <BusComponent data={responseData} />
+        ) : responseData.alternative_path ? (
+          <RouteComponent data={responseData.alternative_path} />
+        ) : (
+          <p>{responseData.conversation_response}</p>
+        );
       case QuestionType.Notice:
         return <NoticeComponent data={responseData} />;
       default:
-        return <p>알 수 없는 질문 유형입니다.</p>;
+        return <p>알 수 없는 응답 형식입니다.</p>;
     }
   };
 
   return (
     <div>
       <h1>챗봇 응답 테스트</h1>
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <button onClick={() => { setSelectedType(QuestionType.Location); setResponseData(null); }}>위치 찾기</button>
-        <button onClick={() => { setSelectedType(QuestionType.Route); setResponseData(null); }}>길찾기</button>
-        <button onClick={() => { setSelectedType(QuestionType.Bus); setResponseData(null); }}>버스 노선</button>
-        <button onClick={() => { setSelectedType(QuestionType.Notice); setResponseData(null); }}>일상/공지</button>
-      </div>
-      <div>{renderComponent()}</div>
       <div style={{ marginTop: "20px" }}>
         <h2>챗봇과 대화하기</h2>
         <textarea
@@ -225,12 +201,7 @@ const ResponseComponent = () => {
             답변을 기다리는 중입니다...
           </div>
         )}
-        {chatResponse && (
-          <div style={{ marginTop: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
-            <h3>챗봇 응답:</h3>
-            <p>{chatResponse}</p>
-          </div>
-        )}
+        <div style={{ marginTop: "20px" }}>{renderComponent()}</div>
       </div>
     </div>
   );
