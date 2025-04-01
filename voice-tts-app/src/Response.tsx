@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios"; // Import axios for API calls
+import React, { useState } from "react";
+import axios from "axios";
+import { v4 as uuidv4 } from "uuid"; // Import UUID library
 
 // API URL 관리
 const API_URL = "http://localhost:8000/chat"; // Replace with the actual API URL
@@ -95,6 +96,7 @@ const NoticeComponent = ({ data }: { data: NoticeResponse }) => (
 
 // 메인 컴포넌트: 서버 연동을 시뮬레이션하는 더미 데이터와 비동기 처리를 포함
 const ResponseComponent = () => {
+  const [sessionId, setSessionId] = useState<string>(uuidv4()); // Initialize session_id with a UUID
   const [selectedType, setSelectedType] = useState<QuestionType | null>(null);
   const [responseData, setResponseData] = useState<any>(null);
   const [userMessage, setUserMessage] = useState(""); // State for user input
@@ -108,7 +110,7 @@ const ResponseComponent = () => {
     try {
       const response = await axios.post(API_URL, {
         message: userMessage,
-        session_id: "1234", // Replace with actual session ID if needed
+        session_id: sessionId, // Use the current session_id
       });
 
       // 서버 응답 데이터 디버깅
@@ -142,6 +144,17 @@ const ResponseComponent = () => {
     } finally {
       setIsLoading(false); // Set loading state to false
     }
+  };
+
+  // Function to reset the session_id
+  const resetSession = () => {
+    const newSessionId = uuidv4(); // Generate a new UUID
+    setSessionId(newSessionId); // Update the session_id state
+    setResponseData(null); // Clear previous responses
+    setSelectedType(null); // Reset selected type
+    setChatResponse(null); // Clear chat response
+    setUserMessage(""); // Clear user input
+    console.log("Session reset. New session_id:", newSessionId);
   };
 
   // 응답 데이터를 기반으로 적절한 컴포넌트를 렌더링
@@ -182,6 +195,7 @@ const ResponseComponent = () => {
     <div>
       <h1>챗봇 응답 테스트</h1>
       <div style={{ marginTop: "20px" }}>
+        <h2>현재 세션 ID: {sessionId}</h2> {/* Display the session_id */}
         <h2>챗봇과 대화하기</h2>
         <textarea
           value={userMessage}
@@ -189,13 +203,21 @@ const ResponseComponent = () => {
           placeholder="챗봇에게 질문을 입력하세요."
           style={{ width: "100%", height: "100px", marginBottom: "10px" }}
         />
-        <button
-          onClick={sendMessageToAPI}
-          style={{ padding: "10px 20px" }}
-          disabled={isLoading} // Disable button when loading
-        >
-          {isLoading ? "전송 중..." : "전송"}
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            onClick={sendMessageToAPI}
+            style={{ padding: "10px 20px" }}
+            disabled={isLoading} // Disable button when loading
+          >
+            {isLoading ? "전송 중..." : "전송"}
+          </button>
+          <button
+            onClick={resetSession}
+            style={{ padding: "10px 20px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "5px" }}
+          >
+            세션 초기화
+          </button>
+        </div>
         {isLoading && (
           <div style={{ marginTop: "10px", fontStyle: "italic", color: "#888" }}>
             답변을 기다리는 중입니다...
