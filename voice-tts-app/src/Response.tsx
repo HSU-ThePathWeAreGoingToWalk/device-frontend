@@ -98,6 +98,7 @@ const ResponseComponent = () => {
   const [responseData, setResponseData] = useState<any>(null);
   const [userMessage, setUserMessage] = useState(""); // State for user input
   const [chatResponse, setChatResponse] = useState<string | null>(null); // State for chatbot response
+  const [isLoading, setIsLoading] = useState(false);
 
   // 각 질문 타입에 대한 더미 데이터 예시
   const dummyResponses = {
@@ -157,6 +158,7 @@ const ResponseComponent = () => {
   // Function to handle sending a message to the backend API
   const sendMessageToAPI = async () => {
     if (!userMessage.trim()) return; // Prevent empty messages
+    setIsLoading(true); // Set loading state to true
     try {
       const response = await axios.post(API_URL, {
         message: userMessage,
@@ -166,6 +168,8 @@ const ResponseComponent = () => {
     } catch (error) {
       console.error("Error communicating with the chatbot API:", error);
       setChatResponse("오류가 발생했습니다. 다시 시도해주세요."); // Error message
+    } finally {
+      setIsLoading(false); // Set loading state to false
     }
   };
 
@@ -209,7 +213,18 @@ const ResponseComponent = () => {
           placeholder="챗봇에게 질문을 입력하세요."
           style={{ width: "100%", height: "100px", marginBottom: "10px" }}
         />
-        <button onClick={sendMessageToAPI} style={{ padding: "10px 20px" }}>전송</button>
+        <button
+          onClick={sendMessageToAPI}
+          style={{ padding: "10px 20px" }}
+          disabled={isLoading} // Disable button when loading
+        >
+          {isLoading ? "전송 중..." : "전송"}
+        </button>
+        {isLoading && (
+          <div style={{ marginTop: "10px", fontStyle: "italic", color: "#888" }}>
+            답변을 기다리는 중입니다...
+          </div>
+        )}
         {chatResponse && (
           <div style={{ marginTop: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
             <h3>챗봇 응답:</h3>
