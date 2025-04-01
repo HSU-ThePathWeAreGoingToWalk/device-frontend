@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios"; // Import axios for API calls
+
+// API URL 관리
+const API_URL = "http://localhost:8000/chat"; // Replace with the actual API URL
 
 // 응답 타입 정의
 type LocationResponse = {
@@ -92,6 +96,8 @@ const NoticeComponent = ({ data }: { data: NoticeResponse }) => (
 const ResponseComponent = () => {
   const [selectedType, setSelectedType] = useState<QuestionType | null>(null);
   const [responseData, setResponseData] = useState<any>(null);
+  const [userMessage, setUserMessage] = useState(""); // State for user input
+  const [chatResponse, setChatResponse] = useState<string | null>(null); // State for chatbot response
 
   // 각 질문 타입에 대한 더미 데이터 예시
   const dummyResponses = {
@@ -148,6 +154,21 @@ const ResponseComponent = () => {
     }
   }, [selectedType]);
 
+  // Function to handle sending a message to the backend API
+  const sendMessageToAPI = async () => {
+    if (!userMessage.trim()) return; // Prevent empty messages
+    try {
+      const response = await axios.post(API_URL, {
+        message: userMessage,
+        session_id: "1234", // Replace with actual session ID if needed
+      });
+      setChatResponse(response.data.response); // Update chatbot response
+    } catch (error) {
+      console.error("Error communicating with the chatbot API:", error);
+      setChatResponse("오류가 발생했습니다. 다시 시도해주세요."); // Error message
+    }
+  };
+
   // 선택된 질문 유형에 따라 컴포넌트를 렌더링하는 함수
   const renderComponent = () => {
     if (!selectedType) {
@@ -180,6 +201,22 @@ const ResponseComponent = () => {
         <button onClick={() => { setSelectedType(QuestionType.Notice); setResponseData(null); }}>일상/공지</button>
       </div>
       <div>{renderComponent()}</div>
+      <div style={{ marginTop: "20px" }}>
+        <h2>챗봇과 대화하기</h2>
+        <textarea
+          value={userMessage}
+          onChange={(e) => setUserMessage(e.target.value)}
+          placeholder="챗봇에게 질문을 입력하세요."
+          style={{ width: "100%", height: "100px", marginBottom: "10px" }}
+        />
+        <button onClick={sendMessageToAPI} style={{ padding: "10px 20px" }}>전송</button>
+        {chatResponse && (
+          <div style={{ marginTop: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
+            <h3>챗봇 응답:</h3>
+            <p>{chatResponse}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
