@@ -1,0 +1,361 @@
+/* 전체 컨테이너 */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: white;
+    font-family: 'Arial', sans-serif;
+}
+
+/* 상단 상태바 */
+.status-bar {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+/* 시간 표시 */
+.time {
+    display: flex;
+    align-items: center;
+    font-size: 50px;
+    font-weight: 500;
+    gap: 15px;
+    margin-left: 2%;
+}
+
+.sun-icon, .moon-icon {
+    width: 50px;
+    height: 50px;
+}
+
+/* 오른쪽 상단 미세먼지, 온도 정보 영역 */
+.weather-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* 오른쪽 정렬 */
+    margin-right: 3%;
+}
+
+.dust, .temperature {
+    margin-top: 10px;
+    font-size: 40px;
+    color: #333;
+}
+
+/* 경로 애니메이션 관련 스타일 */
+.transport-animation {
+    position: absolute;
+    z-index: 5;
+    transform: translate(-50%, -50%);
+}
+
+.transport-icon {
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
+    width: 60px;
+    height: 60px;
+}
+
+  /* 경로 표시 라인 */
+.route-paths {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+  /* 경로 마커 스타일 */
+.route-marker {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid white;
+    z-index: 2;
+}
+
+.start-marker {
+    width: 16px;
+    height: 16px;
+    background-color: #4CAF50;
+}
+
+.end-marker {
+    width: 20px;
+    height: 20px;
+    background-color: #F44336;
+}
+
+/* 단계별 안내 스타일 */
+.directions-steps {
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 28px;
+}
+
+.direction-step {
+    padding: 15px 10px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+    background-color: #f0f8ff;
+    border-radius: 8px;
+}
+
+.active-step {
+    color: #FF5722;
+    font-weight: bold;
+    background-color: #FFF3E0;
+    border-left: 5px solid #FF5722;
+}
+
+  /* 돌아가기 버튼 */
+.back-button {
+    width: 100%;
+    padding: 20px;
+    background-color: #2196F3;
+    color: white;
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 0 0 16px 16px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background-color: #1976D2;
+}
+
+  /* 교통수단별 스타일 */
+.transport-bus {
+    filter: drop-shadow(0 0 5px rgba(33, 150, 243, 0.5));
+}
+
+.transport-subway {
+    filter: drop-shadow(0 0 5px rgba(76, 175, 80, 0.5));
+}
+
+.transport-ship {
+    filter: drop-shadow(0 0 5px rgba(156, 39, 176, 0.5));
+}
+
+.transport-walking {
+    filter: drop-shadow(0 0 5px rgba(255, 152, 0, 0.5));
+}
+
+  /* 애니메이션 깜빡임 효과 */
+@keyframes icon-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.transport-icon {
+    animation: icon-blink 1.5s infinite;
+}
+
+/* 캐릭터 영역 */
+.character-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 캐릭터 이미지 크기 조정 */
+.character-image {
+    width: 300px; 
+}
+
+/* 메시지 상자 */
+.message-box {
+    margin: 0px 32px;
+    padding: 50px;
+    border: 2px solid #DDD;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer; 
+}
+
+/* 메시지 텍스트 */
+.message-text {
+    font-size: 60px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 150%;
+}
+
+/* 사용자 메시지 (하늘색) */
+.user-message {
+    background-color: #e6f0fa;
+    padding: 30px;
+    border-radius: 10px;
+    align-self: flex-end;
+    font-size: 50px;
+    max-width: 65%; 
+    margin-bottom: 60px;
+}
+
+/* 봇 메시지 (회색) */
+.bot-message {
+    background-color: #f0f0f0;
+    padding: 30px;
+    border-radius: 10px;
+    align-self: flex-start;
+    font-size: 50px;
+    max-width: 65%; 
+}
+
+/* 하단 정보 영역 */
+.info-area {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    padding: 35px 35px 100px 35px;
+    border-radius: 16px;
+}
+
+.bus-info {
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.bus-number {
+    font-size: 50px;
+    font-weight: bold;
+    padding: 30px;
+}
+
+.bus-image {
+    width: 100px;
+    height: auto;
+    margin-top: 20px;
+}
+
+.arrival-time {
+    font-size: 30px;
+    color: #555;
+    padding: 30px;
+}
+
+.no-route-info {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: #999;
+}
+
+/* 버스 노선도 스타일 */
+.bus-route {
+    position: relative;
+    height: 100px;
+    margin: 30px 0;
+    padding: 0 20px;
+}
+
+.route-line {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background-color: #ddd;
+}
+
+.bus-stop {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateX(-50%);
+}
+
+.stop-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #ccc;
+    margin-bottom: 10px;
+}
+
+.stop-name {
+    font-size: 18px;
+    text-align: center;
+}
+
+.current-location .stop-name {
+    font-weight: bold;
+    color: #0066cc;
+}
+
+.current-location-circle {
+    background-color: #0066cc;
+}
+
+.blink {
+    animation: blink-animation 1s infinite;
+}
+
+@keyframes blink-animation {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+.no-bus-info {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+/* 지도 및 방향 정보 스타일 */
+.map-directions-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.map-background {
+    flex: 1;
+    background-color: #f5f5f5;
+    border-radius: 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.directions-overlay {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.directions-overlay h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.directions-overlay p {
+    font-size: 28px;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f0f8ff;
+    border-radius: 8px;
+}
