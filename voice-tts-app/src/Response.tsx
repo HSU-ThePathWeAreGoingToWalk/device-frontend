@@ -157,8 +157,7 @@ const ResponseComponent = () => {
     setIsLoading(true); // Set loading state to true
     try {
       const response = await axios.post(API_URL, {
-        message: userMessage,
-        session_id: sessionId, // Use the current session_id
+        message: userMessage, // Only send the user message
       });
 
       // 서버 응답 데이터 디버깅
