@@ -132,7 +132,7 @@ const ResponseComponent = () => {
       const newCount = prev < 10 ? prev + 1 : prev; // 최대값 10
       if (prev === 0 && newCount > 0) {
         // 0명에서 1명 이상으로 변경될 때
-        setChatResponse("오늘은 어디 가시나요?");
+        setChatResponse("오늘은 어디 가시나요? 대화를 시작해보세요!");
       }
       return newCount;
     });
