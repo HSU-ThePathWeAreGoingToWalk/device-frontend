@@ -21,16 +21,6 @@ function BusStop() {
     currentLocation: null,
     stops: []
   });
-  const [showDirections, setShowDirections] = useState(false);
-  const [directionsData, setDirectionsData] = useState({
-    destination: "",
-    steps: [],
-    routes: [] // 각 경로 단계별 교통수단 정보 (type, start, end)
-  });
-  const [currentRouteIndex, setCurrentRouteIndex] = useState(0);
-  const [animationPosition, setAnimationPosition] = useState({ x: 0, y: 0 });
-  const mapContainerRef = useRef(null);
-  const animationFrameRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recognition, setRecognition] = useState(null);
   const [userMessage, setUserMessage] = useState("");
@@ -108,151 +98,6 @@ function BusStop() {
 
     fetchWeatherData();
   }, []);
-
-  // 방향 정보를 가져오는 함수
-  useEffect(() => {
-    const fetchDirections = async () => {
-      try {
-        // Now we'll check responseData instead of chatHistory
-        if (responseType === 'route' && responseData) {
-          const routesWithTransport = [
-            { type: "walking", start: { x: 10, y: 100 }, end: { x: 100, y: 150 } },
-            { type: "bus", start: { x: 100, y: 150 }, end: { x: 200, y: 80 } },
-            { type: "walking", start: { x: 200, y: 80 }, end: { x: 280, y: 120 } }
-          ];
-          
-          setDirectionsData({
-            destination: responseData.destination || "목적지",
-            steps: responseData.routes_text.split('\n'),
-            routes: routesWithTransport
-          });
-          setShowDirections(true);
-          setCurrentRouteIndex(0);
-          setAnimationPosition({ 
-            x: routesWithTransport[0].start.x, 
-            y: routesWithTransport[0].start.y 
-          });
-        }
-      } catch (error) {
-        console.error("🗺️ Directions fetch error: ", error);
-      }
-    };
-
-    fetchDirections();
-  }, [responseType, responseData]); // Update dependencies
-
-  // 길 찾기 애니메이션 시작
-  useEffect(() => {
-    if (showDirections && directionsData.routes.length > 0) {
-      startRouteAnimation();
-      
-      return () => {
-        stopAnimation();
-      };
-    }
-  }, [showDirections, currentRouteIndex, directionsData]);
-
-  const startRouteAnimation = () => {
-    if (!directionsData.routes[currentRouteIndex]) return;
-    
-    const { start, end } = directionsData.routes[currentRouteIndex];
-    let startX = start.x;
-    let startY = start.y;
-    const endX = end.x;
-    const endY = end.y;
-    
-    // 총 이동해야 할 거리
-    const totalDistanceX = endX - startX;
-    const totalDistanceY = endY - startY;
-    const totalDistance = Math.sqrt(totalDistanceX * totalDistanceX + totalDistanceY * totalDistanceY);
-    
-    // 속도 계수 (값이 클수록 느리게 이동)
-    const speedFactor = 100;
-    const animationDuration = totalDistance * speedFactor;
-    
-    // 애니메이션 시작 시간 기록
-    const startTime = performance.now();
-    
-    const animate = (currentTime) => {
-      // 경과 시간 계산
-      const elapsedTime = currentTime - startTime;
-      const progress = Math.min(elapsedTime / animationDuration, 1);
-      
-      // 현재 위치 계산
-      const currentX = startX + (totalDistanceX * progress);
-      const currentY = startY + (totalDistanceY * progress);
-      
-      setAnimationPosition({ x: currentX, y: currentY });
-      
-      // 애니메이션 완료 체크
-      if (progress < 1) {
-        animationFrameRef.current = requestAnimationFrame(animate);
-      } else {
-        // 다음 경로로 이동
-        if (currentRouteIndex < directionsData.routes.length - 1) {
-          setTimeout(() => {
-            setCurrentRouteIndex(prevIndex => prevIndex + 1);
-          }, 500); // 다음 루트로 넘어가기 전 잠시 대기
-        }
-      }
-    };
-    
-    animationFrameRef.current = requestAnimationFrame(animate);
-  };
-
-  const stopAnimation = () => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-  };
-
-  // 현재 교통수단에 맞는 이미지 반환
-  const getTransportImage = () => {
-    if (!directionsData.routes[currentRouteIndex]) return null;
-    
-    const transportType = directionsData.routes[currentRouteIndex].type;
-    
-    switch(transportType) {
-      case "bus":
-        return "/bus.png"; // 실제 경로로 대체
-      case "subway":
-        return "/subway.png";
-      case "ship":
-        return "/ship.png";
-      case "walking":
-        return "/walking.png";
-      default:
-        return "/walking.png";
-    }
-  };
-
-  // 버스 노선도 렌더링 함수
-  const renderBusRoute = () => {
-    if (!busInfo.stops || busInfo.stops.length === 0) {
-      return <div className="no-route-info">노선 정보가 없습니다</div>;
-    }
-
-    return (
-      <div className="bus-route">
-        <div className="route-line"></div>
-        {busInfo.stops.map((stop, index) => (
-          <div 
-            key={index} 
-            className={`bus-stop ${stop.id === busInfo.currentLocation ? 'current-location' : ''}`}
-            style={{
-              left: `${(index / (busInfo.stops.length - 1)) * 100}%`
-            }}
-          >
-            <div 
-              className={`stop-circle ${stop.id === busInfo.currentLocation ? 'current-location-circle blink' : ''}`}
-            ></div>
-            <div className="stop-name">{stop.name}</div>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   // 음성 인식 초기화 부분 수정
   useEffect(() => {
@@ -612,7 +457,6 @@ function BusStop() {
 
   return (
     <div className="app-container">
-      {/* 상단 상태바 */}
       <div className="status-bar">
         <div className="time">
           {isDay ? (
@@ -641,199 +485,95 @@ function BusStop() {
         </div>
       </div>
 
-      {/* 지도 및 방향 정보 표시 */}
-      {showDirections ? (
-        <div className="map-directions-container" ref={mapContainerRef}>
-          <div className="map-background">
-            {/* 상단 목적지 및 경로 정보 */}
-            <div className="directions-overlay">
-              <h2>{directionsData.destination}</h2>
-              <div className="directions-steps">
-                {directionsData.steps && directionsData.steps.map((step, index) => (
-                  <div 
-                    key={index} 
-                    className={`direction-step ${index === currentRouteIndex ? 'active-step' : ''}`}
-                  >
-                    {step}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 교통수단 애니메이션 */}
-            {directionsData.routes && directionsData.routes.length > 0 && (
-              <div 
-                className="transport-animation"
-                style={{
-                  position: 'absolute',
-                  left: `${animationPosition.x}px`,
-                  top: `${animationPosition.y}px`,
-                  transition: 'left 0.1s linear, top 0.1s linear'
-                }}
-              >
-                <img 
-                  src={getTransportImage()} 
-                  alt="교통수단" 
-                  className="transport-icon"
-                  style={{
-                    width: '40px',
-                    height: '40px'
-                  }}
-                />
-              </div>
-            )}
-
-            {/* 경로 표시 선 */}
-            <svg className="route-paths" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-              {directionsData.routes && directionsData.routes.map((route, index) => (
-                <line  
-                  key={index}
-                  x1={route.start.x} 
-                  y1={route.start.y} 
-                  x2={route.end.x} 
-                  y2={route.end.y}
-                  stroke={index === currentRouteIndex ? "#FF5722" : "#666"}
-                  strokeWidth="3"
-                  strokeDasharray={route.type === "walking" ? "5,5" : "none"}
-                />
-              ))}
-            </svg>
-
-            {/* 경로 상의 정류장/역 마커 표시 */}
-            <div className="route-markers">
-              {directionsData.routes && directionsData.routes.map((route, index) => (
-                <React.Fragment key={index}>
-                  <div 
-                    className="route-marker start-marker"
-                    style={{
-                      position: 'absolute',
-                      left: `${route.start.x - 6}px`,
-                      top: `${route.start.y - 6}px`,
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      backgroundColor: index === 0 ? '#4CAF50' : '#666',
-                      border: '2px solid white',
-                      zIndex: 2
-                    }}
-                  ></div>
-                  
-                  {index === directionsData.routes.length - 1 && (
-                    <div 
-                      className="route-marker end-marker"
-                      style={{
-                        position: 'absolute',
-                        left: `${route.end.x - 8}px`,
-                        top: `${route.end.y - 8}px`,
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        backgroundColor: '#F44336',
-                        border: '2px solid white',
-                        zIndex: 2
-                      }}
-                    ></div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-          {/* 하단에 돌아가기 버튼 추가 */}
-          <div className="back-button" onClick={() => setShowDirections(false)}>
-            돌아가기
-          </div>
+      <>
+        <div className="character-area">
+          <img src={characterImg} alt="캐릭터" className="character-image" />
         </div>
-      ) : (
-        <>
-          <div className="character-area">
-            <img src={characterImg} alt="캐릭터" className="character-image" />
-          </div>
 
-          {/* 음성 인식 UI 추가 */}
-          <div className="voice-control">
-            <ReactMic
-              record={isRecording}
-              className="sound-wave"
-              onStop={stopRecording}
-              strokeColor="#000000"
-              backgroundColor="#ffffff"
-            />
-            <div className="voice-buttons">
-              <button
-                onClick={startRecording}
-                disabled={isRecording}
-                className={`voice-button ${isRecording ? 'disabled' : ''}`}
-              >
-                🎤 음성으로 질문하기
-              </button>
-              <button
-                onClick={stopRecording}
-                disabled={!isRecording}
-                className={`voice-button stop ${!isRecording ? 'disabled' : ''}`}
-              >
-                ⏹ 음성 입력 중지
-              </button>
-            </div>
-          </div>
-
-          {/* 텍스트 입력 UI 추가 */}
-          <div className="text-input-container">
-            <input
-              type="text"
-              value={userMessage}
-              onChange={(e) => setUserMessage(e.target.value)}
-              placeholder="질문을 입력하세요..."
-              className="text-input"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && userMessage.trim()) {
-                  sendMessageToAPI(userMessage);
-                  setUserMessage('');
-                }
-              }}
-            />
+        {/* 음성 인식 UI */}
+        <div className="voice-control">
+          <ReactMic
+            record={isRecording}
+            className="sound-wave"
+            onStop={stopRecording}
+            strokeColor="#000000"
+            backgroundColor="#ffffff"
+          />
+          <div className="voice-buttons">
             <button
-              onClick={() => {
-                if (userMessage.trim()) {
-                  sendMessageToAPI(userMessage);
-                  setUserMessage('');
-                }
-              }}
-              className="send-button"
-              disabled={!userMessage.trim()}
+              onClick={startRecording}
+              disabled={isRecording}
+              className={`voice-button ${isRecording ? 'disabled' : ''}`}
             >
-              전송
+              🎤 음성으로 질문하기
+            </button>
+            <button
+              onClick={stopRecording}
+              disabled={!isRecording}
+              className={`voice-button stop ${!isRecording ? 'disabled' : ''}`}
+            >
+              ⏹ 음성 입력 중지
             </button>
           </div>
+        </div>
 
-          {/* 실시간 음성 인식 텍스트 표시 */}
-          {isRecording && realtimeText && (
-            <div className="realtime-text">
-              {realtimeText}
-              <span className="recording-indicator">●</span>
-            </div>
-          )}
+        {/* 텍스트 입력 UI */}
+        <div className="text-input-container">
+          <input
+            type="text"
+            value={userMessage}
+            onChange={(e) => setUserMessage(e.target.value)}
+            placeholder="질문을 입력하세요..."
+            className="text-input"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && userMessage.trim()) {
+                sendMessageToAPI(userMessage);
+                setUserMessage('');
+              }
+            }}
+          />
+          <button
+            onClick={() => {
+              if (userMessage.trim()) {
+                sendMessageToAPI(userMessage);
+                setUserMessage('');
+              }
+            }}
+            className="send-button"
+            disabled={!userMessage.trim()}
+          >
+            전송
+          </button>
+        </div>
 
-          {/* 응답 표시 영역 */}
-          {renderResponse()}
-
-          <div className="info-area">
-            <div className="bus-info">
-              {busInfo.number !== "정보가 없습니다" ? (
-                <>
-                  <div className="bus-number">{busInfo.number}번 버스 현재 위치</div>
-                  {busInfo.image && <img src={busInfo.image} alt="버스" className="bus-image" />}
-                  <div className="arrival-time">{busInfo.arrivalTime}</div>
-                  {renderBusRoute()}
-                </>
-              ) : (
-                <div className="no-bus-info">정보가 없습니다</div>
-              )}
-            </div>
+        {/* 실시간 음성 인식 텍스트 */}
+        {isRecording && realtimeText && (
+          <div className="realtime-text">
+            {realtimeText}
+            <span className="recording-indicator">●</span>
           </div>
-        </>
-      )}
+        )}
 
-      {/* 지도 오버레이 추가 */}
+        {/* 응답 표시 영역 */}
+        {renderResponse()}
+
+        {/* 버스 정보 영역 */}
+        <div className="info-area">
+          <div className="bus-info">
+            {busInfo.number !== "정보가 없습니다" ? (
+              <>
+                <div className="bus-number">{busInfo.number}번 버스</div>
+                {busInfo.image && <img src={busInfo.image} alt="버스" className="bus-image" />}
+                <div className="arrival-time">도착 예정: {busInfo.arrivalTime}</div>
+              </>
+            ) : (
+              <div className="no-bus-info">버스 정보가 없습니다</div>
+            )}
+          </div>
+        </div>
+      </>
+
+      {/* 지도 오버레이 */}
       {showMap && mapData && (
         <div className="map-overlay">
           <Map
