@@ -7,6 +7,8 @@ import busImg from "./bus.png";
 import subwayImg from "./subway.png";
 import shipImg from "./ship.png";
 import walkingImg from "./walking.png";
+import Map from '../Map/Map.tsx';  // Update this line
+import { v4 as uuidv4 } from "uuid";
 
 function BusStop() {
   const [currentTime, setCurrentTime] = useState("");
@@ -33,18 +35,21 @@ function BusStop() {
   const [recognition, setRecognition] = useState(null);
   const [userMessage, setUserMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId] = useState(uuidv4());
+  const [userQuestion, setUserQuestion] = useState("");
+  const [responseType, setResponseType] = useState(null);
+  const [responseData, setResponseData] = useState(null);
 
   // Voice recognition states
   const isRecordingRef = useRef(isRecording);
   const userMessageRef = useRef(userMessage);
 
-  // 채팅 히스토리를 관리하는 상태 추가
-  const [chatHistory, setChatHistory] = useState([
-    {
-      type: 'bot',
-      message: '안녕하세요? 오늘은 어디 가시나요?'
-    }
-  ]);
+  // 실시간 음성 인식 텍스트를 위한 상태 추가
+  const [realtimeText, setRealtimeText] = useState("");
+
+  // 상태 추가
+  const [showMap, setShowMap] = useState(false);
+  const [mapData, setMapData] = useState(null);
 
   const updateTime = () => {
     const now = new Date();
@@ -108,31 +113,25 @@ function BusStop() {
   useEffect(() => {
     const fetchDirections = async () => {
       try {
-        // 채팅에서 질문 후 백엔드에서 방향 정보를 가져오는 API 호출
-        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].message.includes("어떻게 가")) {
-          const response = await axios.get("https://your-backend.com/api/directions", {
-            params: { destination: chatHistory[chatHistory.length - 1].message }
-          });
+        // Now we'll check responseData instead of chatHistory
+        if (responseType === 'route' && responseData) {
+          const routesWithTransport = [
+            { type: "walking", start: { x: 10, y: 100 }, end: { x: 100, y: 150 } },
+            { type: "bus", start: { x: 100, y: 150 }, end: { x: 200, y: 80 } },
+            { type: "walking", start: { x: 200, y: 80 }, end: { x: 280, y: 120 } }
+          ];
           
-          if (response.data && response.data.destination) {
-            // API에서 받아온 경로 정보에 교통수단 정보 추가
-            const routesWithTransport = [
-              { type: "walking", start: { x: 10, y: 100 }, end: { x: 100, y: 150 } },
-              { type: "bus", start: { x: 100, y: 150 }, end: { x: 200, y: 80 } },
-              { type: "walking", start: { x: 200, y: 80 }, end: { x: 280, y: 120 } }
-            ];
-            
-            setDirectionsData({
-              ...response.data,
-              routes: routesWithTransport
-            });
-            setShowDirections(true);
-            setCurrentRouteIndex(0);
-            setAnimationPosition({ 
-              x: routesWithTransport[0].start.x, 
-              y: routesWithTransport[0].start.y 
-            });
-          }
+          setDirectionsData({
+            destination: responseData.destination || "목적지",
+            steps: responseData.routes_text.split('\n'),
+            routes: routesWithTransport
+          });
+          setShowDirections(true);
+          setCurrentRouteIndex(0);
+          setAnimationPosition({ 
+            x: routesWithTransport[0].start.x, 
+            y: routesWithTransport[0].start.y 
+          });
         }
       } catch (error) {
         console.error("🗺️ Directions fetch error: ", error);
@@ -140,7 +139,7 @@ function BusStop() {
     };
 
     fetchDirections();
-  }, [chatHistory]);
+  }, [responseType, responseData]); // Update dependencies
 
   // 길 찾기 애니메이션 시작
   useEffect(() => {
@@ -255,38 +254,45 @@ function BusStop() {
     );
   };
 
-  // 음성 인식 초기화
+  // 음성 인식 초기화 부분 수정
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognizer = new SpeechRecognition();
         recognizer.lang = 'ko-KR';
-        recognizer.continuous = false;
-        recognizer.interimResults = true;
+        recognizer.continuous = true; // 연속 인식 활성화
+        recognizer.interimResults = true; // 중간 결과 활성화
 
         recognizer.onstart = () => {
           console.log('음성 인식 시작...');
+          setRealtimeText("");
+          setIsRecording(true);
         };
 
         recognizer.onresult = (event) => {
           const transcript = Array.from(event.results)
-            .map(result => result[0].transcript)
+            .map(result => result[0])
+            .map(result => result.transcript)
             .join('');
-          console.log('실시간 인식 텍스트:', transcript);
-          setUserMessage(transcript);
+          
+          console.log('인식된 텍스트:', transcript);
+          setRealtimeText(transcript);
+          
+          // 음성 인식이 완료되면 메시지 전송
+          if (event.results[event.results.length - 1].isFinal) {
+            setUserMessage(transcript);
+            sendMessageToAPI(transcript);
+          }
         };
 
         recognizer.onerror = (event) => {
           console.error('음성 인식 오류:', event.error);
+          setIsRecording(false);
         };
 
         recognizer.onend = () => {
           console.log('음성 인식 종료');
-          if (userMessageRef.current.trim() !== "") {
-            sendMessageToAPI(userMessageRef.current);
-            setUserMessage('');
-          }
           setIsRecording(false);
         };
 
@@ -364,116 +370,245 @@ function BusStop() {
   // 응답 유형 추론 및 처리를 위한 수정된 sendMessageToAPI 함수
   const sendMessageToAPI = async (message) => {
     setIsLoading(true);
-    
-    // 사용자 메시지를 채팅 히스토리에 추가
-    setChatHistory(prev => [...prev, {
-      type: 'user',
-      message: message
-    }]);
-
+    setUserQuestion(message);
+  
     try {
       const response = await axios.post("http://localhost:8000/chat", {
         message: message,
         session_id: sessionId
       });
-
+  
       const data = response.data;
       console.log("Server Response:", data);
-
-      // 응답 유형에 따른 처리
-      if (data.routes_text && data.coordinates) {
-        // 길찾기 응답
-        setChatHistory(prev => [...prev, {
-          type: 'bot',
-          message: data.conversation_response,
-          routeData: {
-            routes_text: data.routes_text,
-            coordinates: data.coordinates
-          }
-        }]);
-        setDirectionsData({
-          destination: data.conversation_response,
-          steps: data.routes_text.split('\n'),
-          routes: data.coordinates.map((coord, index, array) => {
-            if (index < array.length - 1) {
-              return {
-                type: "walking",
-                start: { x: coord[0], y: coord[1] },
-                end: { x: array[index + 1][0], y: array[index + 1][1] }
-              };
-            }
-          }).filter(Boolean)
+  
+      // 응답 유형 추론 및 데이터 처리
+      if (data.places && data.coordinates) {
+        setResponseType('location');
+        setResponseData({
+          places: data.places,
+          coordinates: data.coordinates,
+          conversation_response: data.conversation_response
         });
-      } else if (data.available_buses && data.arrival_times) {
-        // 버스 정보 응답
-        setChatHistory(prev => [...prev, {
-          type: 'bot',
-          message: data.conversation_response,
-          busData: {
-            buses: data.available_buses,
-            times: data.arrival_times
-          }
-        }]);
-        setBusInfo({
-          number: data.available_buses[0],
-          arrivalTime: data.arrival_times[0].expectedArrival,
-          stops: data.stops || []
+      } 
+      else if (data.routes_text && data.coordinates) {
+        setResponseType('route');
+        setResponseData({
+          routes_text: data.routes_text,
+          coordinates: data.coordinates,
+          conversation_response: data.conversation_response
         });
-      } else if (data.response && data.success) {
-        // 일반 응답
-        setChatHistory(prev => [...prev, {
-          type: 'bot',
-          message: data.response
-        }]);
-        await speakText(data.response);
       }
+      else if (data.available_buses && data.arrival_times) {
+        setResponseType('bus');
+        setResponseData({
+          available_buses: data.available_buses,
+          arrival_times: data.arrival_times,
+          conversation_response: data.conversation_response,
+          alternative_path: data.alternative_path
+        });
+      }
+      else {
+        setResponseType('notice');
+        setResponseData({
+          response: data.response || data.conversation_response,
+          success: true
+        });
+      }
+      
+      await speakText(data.response || data.conversation_response);
     } catch (error) {
       console.error("Error:", error);
-      setChatHistory(prev => [...prev, {
-        type: 'bot',
-        message: "오류가 발생했습니다. 다시 시도해주세요."
-      }]);
+      setResponseType('notice');
+      setResponseData({
+        response: "오류가 발생했습니다. 다시 시도해주세요.",
+        success: false
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 메시지 박스 UI 수정
-  const renderMessageBox = () => (
-    <div className="message-box">
-      <div className="chat-history">
-        {chatHistory.map((chat, index) => (
-          <div key={index} className={`chat-message ${chat.type}`}>
-            <div className="message-content">
-              {chat.message.split('\n').map((line, i) => (
-                <div key={i}>{line}</div>
-              ))}
-              {chat.routeData && (
-                <button 
-                  className="show-route-btn"
-                  onClick={() => setShowDirections(true)}
-                >
-                  🗺 경로 보기
-                </button>
-              )}
-              {chat.busData && (
-                <div className="bus-info-preview">
-                  🚌 {chat.busData.buses.join(', ')} 버스
-                </div>
-              )}
-            </div>
-          </div>
+  // 응답 컴포넌트들 수정
+  const LocationComponent = ({ data }) => (
+    <div className="response-card location">
+      <h3>📍 위치 찾기</h3>
+      <p>{data.conversation_response}</p>
+      <ul>
+        {data.places.map((place, index) => (
+          <li key={index}>✅ {place}</li>
         ))}
-        {isLoading && (
-          <div className="chat-message bot">
-            <div className="message-content loading">
-              답변을 생성하고 있습니다...
-            </div>
-          </div>
-        )}
-      </div>
+      </ul>
+      {data.coordinates && (
+        <button 
+          className="show-map-btn"
+          onClick={() => {
+            setMapData({
+              type: 'location',
+              places: data.places,
+              coordinates: data.coordinates
+            });
+            setShowMap(true);
+          }}
+        >
+          🗺️ 지도에서 보기
+        </button>
+      )}
     </div>
   );
+  
+  const RouteComponent = ({ data }) => (
+    <div className="response-card route">
+      <h3>🗺 길찾기</h3>
+      <p>{data.conversation_response}</p>
+      <div className="route-details">
+        <p><strong>🚶 이동 경로:</strong></p>
+        {data.routes_text.split('\n').map((step, index) => (
+          <div key={index} className="route-step">
+            {step}
+          </div>
+        ))}
+      </div>
+      {data.coordinates && (
+        <button 
+          className="show-map-btn"
+          onClick={() => {
+            setMapData({
+              type: 'route',
+              coordinates: data.coordinates,
+              routes_text: data.routes_text
+            });
+            setShowMap(true);
+          }}
+        >
+          🗺️ 경로 보기
+        </button>
+      )}
+    </div>
+  );
+  
+  const BusComponent = ({ data }) => (
+    <div className="response-card bus">
+      <h3>🚌 버스 정보</h3>
+      <p>{data.conversation_response}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>버스 번호</th>
+            <th>예상 도착 시간</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.arrival_times.map((bus, index) => (
+            <tr key={index}>
+              <td>{data.available_buses[index]}</td>
+              <td>{bus.expectedArrival}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {data.alternative_path && (
+        <div className="alternative-route">
+          <h4>🚶 대체 경로</h4>
+          <RouteComponent data={data.alternative_path} />
+        </div>
+      )}
+    </div>
+  );
+  
+  const NoticeComponent = ({ data }) => (
+    <div className="response-card notice">
+      <h3>📢 알림</h3>
+      <p>{data.response}</p>
+    </div>
+  );
+
+  // renderResponse 함수 수정
+  const renderResponse = () => {
+    if (!responseData) return null;
+
+    return (
+      <div className="response-container">
+        <div className="user-question">
+          <h3>🗣️ 질문</h3>
+          <p>{userQuestion}</p>
+        </div>
+        <div className="bot-response">
+          {isLoading ? (
+            <div className="loading-message">답변을 생성하고 있습니다...</div>
+          ) : (
+            <>
+              {responseType === 'location' && <LocationComponent data={responseData} />}
+              {responseType === 'route' && <RouteComponent data={responseData} />}
+              {responseType === 'bus' && <BusComponent data={responseData} />}
+              {responseType === 'notice' && <NoticeComponent data={responseData} />}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Map 컴포넌트
+  const MapComponent = ({ data }) => {
+    const mapRef = useRef(null);
+  
+    useEffect(() => {
+      if (!window.kakao || !mapRef.current || !data) return;
+  
+      const map = new window.kakao.maps.Map(mapRef.current, {
+        center: new window.kakao.maps.LatLng(data.coordinates[0][1], data.coordinates[0][0]),
+        level: 3
+      });
+  
+      if (data.type === 'location') {
+        // 위치 마커 표시
+        data.coordinates.forEach((coord, idx) => {
+          const marker = new window.kakao.maps.Marker({
+            position: new window.kakao.maps.LatLng(coord[1], coord[0])
+          });
+          marker.setMap(map);
+  
+          if (data.places[idx]) {
+            const infowindow = new window.kakao.maps.InfoWindow({
+              content: `<div style="padding:5px;">${data.places[idx]}</div>`
+            });
+            infowindow.open(map, marker);
+          }
+        });
+      } else if (data.type === 'route') {
+        // 경로 그리기
+        const path = data.coordinates.map(coord => 
+          new window.kakao.maps.LatLng(coord[1], coord[0])
+        );
+        const polyline = new window.kakao.maps.Polyline({
+          path: path,
+          strokeWeight: 5,
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.7
+        });
+        polyline.setMap(map);
+  
+        // 시작점과 도착점 마커
+        const startMarker = new window.kakao.maps.Marker({
+          position: path[0]
+        });
+        const endMarker = new window.kakao.maps.Marker({
+          position: path[path.length - 1]
+        });
+        startMarker.setMap(map);
+        endMarker.setMap(map);
+      }
+  
+      // 모든 좌표가 보이도록 지도 범위 조정
+      const bounds = new window.kakao.maps.LatLngBounds();
+      data.coordinates.forEach(coord => {
+        bounds.extend(new window.kakao.maps.LatLng(coord[1], coord[0]));
+      });
+      map.setBounds(bounds);
+    }, [data]);
+  
+    return <div ref={mapRef} style={{ width: '100%', height: '400px' }} />;
+  };
 
   return (
     <div className="app-container">
@@ -494,12 +629,11 @@ function BusStop() {
             </svg>
           ) : (
             <svg className="moon-icon" xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79z"></path>
             </svg>
           )}
           {currentTime}
         </div>
-
         {/* 오른쪽 상단 미세먼지, 온도 정보 추가 */}
         <div className="weather-info">
           <div className="dust">미세먼지: {weatherData.dust}</div>
@@ -525,7 +659,7 @@ function BusStop() {
                 ))}
               </div>
             </div>
-            
+
             {/* 교통수단 애니메이션 */}
             {directionsData.routes && directionsData.routes.length > 0 && (
               <div 
@@ -548,11 +682,11 @@ function BusStop() {
                 />
               </div>
             )}
-            
+
             {/* 경로 표시 선 */}
             <svg className="route-paths" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
               {directionsData.routes && directionsData.routes.map((route, index) => (
-                <line 
+                <line  
                   key={index}
                   x1={route.start.x} 
                   y1={route.start.y} 
@@ -564,7 +698,7 @@ function BusStop() {
                 />
               ))}
             </svg>
-            
+
             {/* 경로 상의 정류장/역 마커 표시 */}
             <div className="route-markers">
               {directionsData.routes && directionsData.routes.map((route, index) => (
@@ -604,7 +738,6 @@ function BusStop() {
               ))}
             </div>
           </div>
-          
           {/* 하단에 돌아가기 버튼 추가 */}
           <div className="back-button" onClick={() => setShowDirections(false)}>
             돌아가기
@@ -643,8 +776,45 @@ function BusStop() {
             </div>
           </div>
 
-          {/* 채팅 히스토리 표시 */}
-          {renderMessageBox()}
+          {/* 텍스트 입력 UI 추가 */}
+          <div className="text-input-container">
+            <input
+              type="text"
+              value={userMessage}
+              onChange={(e) => setUserMessage(e.target.value)}
+              placeholder="질문을 입력하세요..."
+              className="text-input"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && userMessage.trim()) {
+                  sendMessageToAPI(userMessage);
+                  setUserMessage('');
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                if (userMessage.trim()) {
+                  sendMessageToAPI(userMessage);
+                  setUserMessage('');
+                }
+              }}
+              className="send-button"
+              disabled={!userMessage.trim()}
+            >
+              전송
+            </button>
+          </div>
+
+          {/* 실시간 음성 인식 텍스트 표시 */}
+          {isRecording && realtimeText && (
+            <div className="realtime-text">
+              {realtimeText}
+              <span className="recording-indicator">●</span>
+            </div>
+          )}
+
+          {/* 응답 표시 영역 */}
+          {renderResponse()}
 
           <div className="info-area">
             <div className="bus-info">
@@ -652,8 +822,8 @@ function BusStop() {
                 <>
                   <div className="bus-number">{busInfo.number}번 버스 현재 위치</div>
                   {busInfo.image && <img src={busInfo.image} alt="버스" className="bus-image" />}
-                  {renderBusRoute()}
                   <div className="arrival-time">{busInfo.arrivalTime}</div>
+                  {renderBusRoute()}
                 </>
               ) : (
                 <div className="no-bus-info">정보가 없습니다</div>
@@ -661,6 +831,20 @@ function BusStop() {
             </div>
           </div>
         </>
+      )}
+
+      {/* 지도 오버레이 추가 */}
+      {showMap && mapData && (
+        <div className="map-overlay">
+          <Map
+            coordinates={mapData.coordinates}
+            type={mapData.type}
+            places={mapData.places}
+          />
+          <button className="close-map-btn" onClick={() => setShowMap(false)}>
+            지도 닫기
+          </button>
+        </div>
       )}
     </div>
   );

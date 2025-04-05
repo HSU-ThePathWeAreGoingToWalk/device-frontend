@@ -171,13 +171,15 @@
 
 /* 메시지 상자 */
 .message-box {
-    margin: 20px 32px;
-    padding: 30px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    cursor: pointer; 
+  margin: 20px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5); /* 배경 어둡게 수정 */
+  border-radius: 16px;
+  height: 60vh; /* 높이를 더 크게 설정 */
+  min-height: 400px; /* 최소 높이 설정 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 컨테이너 자체의 오버플로우는 숨김 */
 }
 
 /* 메시지 텍스트 */
@@ -365,8 +367,8 @@
 /* 음성 인식 관련 스타일 */
 .voice-control {
   margin: 20px;
-  padding: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.5);
   border-radius: 16px;
 }
 
@@ -382,24 +384,18 @@
   display: flex;
   gap: 10px;
   justify-content: center;
+  margin-top: 10px;
 }
 
 .voice-button {
-  padding: 15px 30px;
-  font-size: 24px;
+  padding: 12px 24px;
+  font-size: 16px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.voice-button:not(.disabled) {
   background-color: #4CAF50;
   color: white;
-}
-
-.voice-button.stop:not(.disabled) {
-  background-color: #f44336;
 }
 
 .voice-button.disabled {
@@ -407,8 +403,44 @@
   cursor: not-allowed;
 }
 
+.voice-button.stop:not(.disabled) {
+  background-color: #f44336;
+}
+
 /* 채팅 히스토리 스타일 */
 .chat-history {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 10px; /* 스크롤바 여백 */
+}
+
+.chat-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-history::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 새로운 메시지가 추가될 때 자동 스크롤을 위한 스타일 */
+.chat-history {
+  scroll-behavior: smooth;
+}
+
+.chat-message {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -432,18 +464,23 @@
   border-radius: 16px;
   font-size: 16px;
   line-height: 1.4;
+  white-space: pre-wrap; /* 줄바꿈 보존 */
+  word-break: break-word; /* 긴 단어 줄바꿈 */
+  overflow: visible; /* 스크롤 제거 */
 }
 
 .chat-message.bot .message-content {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 16px 16px 16px 0;
+  background-color: #2C3E50; /* 진한 파란색 배경 */
+  color: #FFFFFF; /* 흰색 텍스트 */
+  border-radius: 0 16px 16px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .chat-message.user .message-content {
   background-color: #4CAF50;
-  color: white;
-  border-radius: 16px 16px 0 16px;
+  color: #FFFFFF;
+  border-radius: 16px 0 16px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .message-content.loading {
@@ -468,4 +505,394 @@
   background-color: rgba(0, 123, 255, 0.1);
   border-radius: 8px;
   font-size: 14px;
+}
+
+/* 채팅 컨테이너 스타일 */
+.message-box {
+  margin: 20px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  height: 60vh; /* 채팅창 높이 고정 */
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 컨테이너 자체의 오버플로우는 숨김 */
+}
+
+/* 채팅 히스토리 영역 */
+.chat-history {
+  flex: 1;
+  overflow-y: auto; /* 세로 스크롤만 적용 */
+  overflow-x: hidden; /* 가로 스크롤 숨김 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 10px;
+}
+
+/* 스크롤바 스타일 */
+.chat-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-history::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 메시지 컨테이너 */
+.chat-message {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 12px;
+  /* min-height 제거 - 말풍선이 자유롭게 늘어나도록 */
+}
+
+.chat-message.user {
+  justify-content: flex-end;
+}
+
+/* 메시지 내용 */
+.message-content {
+  padding: 12px 16px;
+  border-radius: 16px;
+  max-width: 70%;
+  word-break: break-word;
+  color: #FFFFFF;
+  white-space: pre-wrap;
+  height: fit-content; /* 내용에 맞게 높이 자동 조정 */
+  font-size: 16px;
+  line-height: 1.5;
+  overflow: visible; /* 내용이 넘치지 않도록 */
+}
+
+/* 봇 메시지 */
+.chat-message.bot .message-content {
+  background-color: #2C3E50;
+  margin-right: auto;
+  border-radius: 0 16px 16px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 사용자 메시지 */
+.chat-message.user .message-content {
+  background-color: #4CAF50;
+  margin-left: auto;
+  border-radius: 16px 0 16px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 녹음 중 메시지 */
+.message-content.recording {
+  background-color: #FF9800 !important;
+  animation: pulse 1.5s infinite;
+}
+
+.recording-indicator {
+  display: inline-block;
+  margin-left: 8px;
+  color: #ff0000;
+  animation: blink 1s infinite;
+}
+
+/* 로딩 메시지 */
+.message-content.loading {
+  background-color: rgba(255, 255, 255, 0.1);
+  font-style: italic;
+}
+
+/* 지도 버튼 */
+.show-map-btn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: #FF9800;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* 버스 정보 미리보기 */
+.bus-info-preview {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(0, 123, 255, 0.2);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+@keyframes blink {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 음성 인식 컨트롤 */
+.voice-control {
+  margin: 20px;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+}
+
+.voice-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.voice-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #4CAF50;
+  color: white;
+}
+
+.voice-button.stop {
+  background-color: #f44336;
+}
+
+.voice-button.disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.map-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 800px;
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.close-map-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 8px 16px;
+  background-color: #FF5722;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.close-map-btn:hover {
+  background-color: #F4511E;
+}
+
+/* 응답 컨테이너 스타일 */
+.response-container {
+  margin: 20px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.user-question {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.user-question h3 {
+  margin: 0 0 10px 0;
+  color: #FFF;
+}
+
+.user-question p {
+  margin: 0;
+  color: #FFF;
+  font-size: 16px;
+}
+
+.response-card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 10px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.response-card h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.response-card p {
+  margin: 10px 0;
+  line-height: 1.5;
+}
+
+/* 위치 찾기 카드 */
+.response-card.location {
+  border: 1px solid #ccc;
+}
+
+.response-card.location ul {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+}
+
+.response-card.location li {
+  padding: 8px;
+  margin: 5px 0;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+}
+
+/* 길찾기 카드 */
+.response-card.route {
+  border: 1px solid #4CAF50;
+  background-color: #f0fff0;
+}
+
+.route-details {
+  margin: 15px 0;
+}
+
+.route-step {
+  padding: 10px;
+  margin: 5px 0;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 버스 정보 카드 */
+.response-card.bus {
+  border: 1px solid #007BFF;
+  background-color: #e9f5ff;
+}
+
+.response-card.bus table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+
+.response-card.bus th,
+.response-card.bus td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.response-card.bus th {
+  background-color: #f5f5f5;
+}
+
+/* 알림 카드 */
+.response-card.notice {
+  border: 1px solid #FF9800;
+  background-color: #FFF3E0;
+}
+
+/* 지도 버튼 */
+.show-map-btn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.show-map-btn:hover {
+  background-color: #45a049;
+}
+
+/* 로딩 메시지 */
+.loading-message {
+  text-align: center;
+  color: #FFF;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* 텍스트 입력 컨테이너 스타일 */
+.text-input-container {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  margin: 10px auto;
+  max-width: 600px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.text-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 16px;
+  color: #333;
+}
+
+.text-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+}
+
+.send-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.send-button:hover {
+  background-color: #45a049;
+}
+
+.send-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
