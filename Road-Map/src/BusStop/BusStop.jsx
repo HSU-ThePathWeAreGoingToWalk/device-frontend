@@ -25,7 +25,6 @@ function BusStop() {
   const [recognition, setRecognition] = useState(null);
   const [userMessage, setUserMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId] = useState(uuidv4());
   const [userQuestion, setUserQuestion] = useState("");
   const [responseType, setResponseType] = useState(null);
   const [responseData, setResponseData] = useState(null);
@@ -113,21 +112,30 @@ function BusStop() {
           console.log('음성 인식 시작...');
           setRealtimeText("");
           setIsRecording(true);
+          setUserQuestion("");
         };
 
+        // onresult 핸들러 수정
         recognizer.onresult = (event) => {
-          const transcript = Array.from(event.results)
-            .map(result => result[0])
-            .map(result => result.transcript)
-            .join('');
+          // 가장 최근의 인식 결과만 가져오기
+          const lastResult = event.results[event.results.length - 1];
+          const currentText = lastResult[0].transcript;
           
-          console.log('인식된 텍스트:', transcript);
-          setRealtimeText(transcript);
+          console.log('인식된 텍스트:', currentText);
+          setRealtimeText(currentText);
           
           // 음성 인식이 완료되면 메시지 전송
-          if (event.results[event.results.length - 1].isFinal) {
-            setUserMessage(transcript);
-            sendMessageToAPI(transcript);
+          if (lastResult.isFinal) {
+            setUserMessage(currentText);
+            sendMessageToAPI(currentText);
+            // 메시지 전송 후 텍스트 초기화
+            setRealtimeText("");
+            
+            // 음성 인식 초기화
+            if (recognition) {
+              recognition.stop();
+              recognition.start();
+            }
           }
         };
 
@@ -219,8 +227,7 @@ function BusStop() {
   
     try {
       const response = await axios.post("http://localhost:8000/chat", {
-        message: message,
-        session_id: sessionId
+        message: message
       });
   
       const data = response.data;
@@ -261,6 +268,10 @@ function BusStop() {
       }
       
       await speakText(data.response || data.conversation_response);
+      // 모든 텍스트 입력 초기화
+      setUserMessage("");
+      setRealtimeText("");
+      
     } catch (error) {
       console.error("Error:", error);
       setResponseType('notice');
