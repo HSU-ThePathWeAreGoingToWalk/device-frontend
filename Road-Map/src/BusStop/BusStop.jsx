@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { ReactMic } from 'react-mic';
 import "./BusStop.css";
 import characterImg from "./char.png";
 import axios from "axios";
@@ -10,7 +11,6 @@ import walkingImg from "./walking.png";
 function BusStop() {
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
-  const [chatIndex, setChatIndex] = useState(-1);
   const [weatherData, setWeatherData] = useState({ dust: "", temperature: "" });
   const [busInfo, setBusInfo] = useState({ 
     number: "", 
@@ -29,33 +29,22 @@ function BusStop() {
   const [animationPosition, setAnimationPosition] = useState({ x: 0, y: 0 });
   const mapContainerRef = useRef(null);
   const animationFrameRef = useRef(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recognition, setRecognition] = useState(null);
+  const [userMessage, setUserMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const chatOptions = [
-    {
-      question: "110번 버스 고흥 터미널 가?",
-      answer: "110번 버스가 고흥 터미널에 정차하며 10분 후에 110번 버스가 도착합니다.",
-    },
-    {
-      question: "오늘 나 좀 심심한데 지역행사 있어?",
-      answer: "오늘 심심하셨나봐요. 오늘 고흥 전통시장에서 5일장이 열려요.",
-    },
-    {
-      question: "고흥 터미널까지 어떻게 가?",
-      answer: "1. 현재 위치에서 송곡역까지 도보 이동\n2. 송곡역에서 고흥터미널역까지 농어촌:140 이용\n3. 고흥터미널역에서 고흥공용버스정류장까지 도보 이동",
-    },
-  ];
+  // Voice recognition states
+  const isRecordingRef = useRef(isRecording);
+  const userMessageRef = useRef(userMessage);
 
-  const handleMessageClick = () => {
-    setChatIndex((prevIndex) => {
-      const newIndex = prevIndex === chatOptions.length - 1 ? -1 : prevIndex + 1;
-      // 방향 정보가 열려있었으면 닫기
-      if (newIndex === -1 && showDirections) {
-        setShowDirections(false);
-        stopAnimation();
-      }
-      return newIndex;
-    });
-  };
+  // 채팅 히스토리를 관리하는 상태 추가
+  const [chatHistory, setChatHistory] = useState([
+    {
+      type: 'bot',
+      message: '안녕하세요? 오늘은 어디 가시나요?'
+    }
+  ]);
 
   const updateTime = () => {
     const now = new Date();
@@ -120,9 +109,9 @@ function BusStop() {
     const fetchDirections = async () => {
       try {
         // 채팅에서 질문 후 백엔드에서 방향 정보를 가져오는 API 호출
-        if (chatIndex !== -1 && chatOptions[chatIndex].question.includes("어떻게 가")) {
+        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].message.includes("어떻게 가")) {
           const response = await axios.get("https://your-backend.com/api/directions", {
-            params: { destination: chatOptions[chatIndex].question }
+            params: { destination: chatHistory[chatHistory.length - 1].message }
           });
           
           if (response.data && response.data.destination) {
@@ -151,7 +140,7 @@ function BusStop() {
     };
 
     fetchDirections();
-  }, [chatIndex]);
+  }, [chatHistory]);
 
   // 길 찾기 애니메이션 시작
   useEffect(() => {
@@ -265,6 +254,226 @@ function BusStop() {
       </div>
     );
   };
+
+  // 음성 인식 초기화
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognizer = new SpeechRecognition();
+        recognizer.lang = 'ko-KR';
+        recognizer.continuous = false;
+        recognizer.interimResults = true;
+
+        recognizer.onstart = () => {
+          console.log('음성 인식 시작...');
+        };
+
+        recognizer.onresult = (event) => {
+          const transcript = Array.from(event.results)
+            .map(result => result[0].transcript)
+            .join('');
+          console.log('실시간 인식 텍스트:', transcript);
+          setUserMessage(transcript);
+        };
+
+        recognizer.onerror = (event) => {
+          console.error('음성 인식 오류:', event.error);
+        };
+
+        recognizer.onend = () => {
+          console.log('음성 인식 종료');
+          if (userMessageRef.current.trim() !== "") {
+            sendMessageToAPI(userMessageRef.current);
+            setUserMessage('');
+          }
+          setIsRecording(false);
+        };
+
+        setRecognition(recognizer);
+      }
+    }
+  }, []);
+
+  // Text-to-Speech function
+  const speakText = async (text) => {
+    const apiKey = process.env.REACT_APP_GOOGLE_TTS_API_KEY;
+    if (!apiKey) {
+      console.error('Google TTS API 키가 설정되지 않았습니다.');
+      return;
+    }
+
+    const API_URL = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+    const requestBody = {
+      input: { text },
+      voice: {
+        languageCode: 'ko-KR',
+        name: 'ko-KR-Standard-A',
+      },
+      audioConfig: {
+        audioEncoding: 'MP3',
+        speakingRate: 1.0,
+        pitch: 0,
+      },
+    };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) throw new Error(`API 요청 실패: ${response.status}`);
+
+      const data = await response.json();
+      if (!data.audioContent) throw new Error('오디오 콘텐츠가 없습니다.');
+
+      const audioContent = data.audioContent;
+      const binaryString = atob(audioContent);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'audio/mp3' });
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      await audio.play();
+
+      audio.onended = () => URL.revokeObjectURL(audioUrl);
+    } catch (error) {
+      console.error('TTS 에러:', error);
+    }
+  };
+
+  // 음성 제어 함수
+  const startRecording = () => {
+    if (recognition) {
+      setIsRecording(true);
+      recognition.start();
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognition) {
+      setIsRecording(false);
+      recognition.stop();
+    }
+  };
+
+  // 응답 유형 추론 및 처리를 위한 수정된 sendMessageToAPI 함수
+  const sendMessageToAPI = async (message) => {
+    setIsLoading(true);
+    
+    // 사용자 메시지를 채팅 히스토리에 추가
+    setChatHistory(prev => [...prev, {
+      type: 'user',
+      message: message
+    }]);
+
+    try {
+      const response = await axios.post("http://localhost:8000/chat", {
+        message: message,
+        session_id: sessionId
+      });
+
+      const data = response.data;
+      console.log("Server Response:", data);
+
+      // 응답 유형에 따른 처리
+      if (data.routes_text && data.coordinates) {
+        // 길찾기 응답
+        setChatHistory(prev => [...prev, {
+          type: 'bot',
+          message: data.conversation_response,
+          routeData: {
+            routes_text: data.routes_text,
+            coordinates: data.coordinates
+          }
+        }]);
+        setDirectionsData({
+          destination: data.conversation_response,
+          steps: data.routes_text.split('\n'),
+          routes: data.coordinates.map((coord, index, array) => {
+            if (index < array.length - 1) {
+              return {
+                type: "walking",
+                start: { x: coord[0], y: coord[1] },
+                end: { x: array[index + 1][0], y: array[index + 1][1] }
+              };
+            }
+          }).filter(Boolean)
+        });
+      } else if (data.available_buses && data.arrival_times) {
+        // 버스 정보 응답
+        setChatHistory(prev => [...prev, {
+          type: 'bot',
+          message: data.conversation_response,
+          busData: {
+            buses: data.available_buses,
+            times: data.arrival_times
+          }
+        }]);
+        setBusInfo({
+          number: data.available_buses[0],
+          arrivalTime: data.arrival_times[0].expectedArrival,
+          stops: data.stops || []
+        });
+      } else if (data.response && data.success) {
+        // 일반 응답
+        setChatHistory(prev => [...prev, {
+          type: 'bot',
+          message: data.response
+        }]);
+        await speakText(data.response);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setChatHistory(prev => [...prev, {
+        type: 'bot',
+        message: "오류가 발생했습니다. 다시 시도해주세요."
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 메시지 박스 UI 수정
+  const renderMessageBox = () => (
+    <div className="message-box">
+      <div className="chat-history">
+        {chatHistory.map((chat, index) => (
+          <div key={index} className={`chat-message ${chat.type}`}>
+            <div className="message-content">
+              {chat.message.split('\n').map((line, i) => (
+                <div key={i}>{line}</div>
+              ))}
+              {chat.routeData && (
+                <button 
+                  className="show-route-btn"
+                  onClick={() => setShowDirections(true)}
+                >
+                  🗺 경로 보기
+                </button>
+              )}
+              {chat.busData && (
+                <div className="bus-info-preview">
+                  🚌 {chat.busData.buses.join(', ')} 버스
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+        {isLoading && (
+          <div className="chat-message bot">
+            <div className="message-content loading">
+              답변을 생성하고 있습니다...
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="app-container">
@@ -407,20 +616,35 @@ function BusStop() {
             <img src={characterImg} alt="캐릭터" className="character-image" />
           </div>
 
-          <div className="message-box" onClick={handleMessageClick}>
-            {chatIndex === -1 ? (
-              <div className="message-text">안녕하세요?<br />오늘은 어디 가시나요?</div>
-            ) : (
-              <>
-                <div className="user-message">{chatOptions[chatIndex].question}</div>
-                <div className="bot-message">
-                  {chatOptions[chatIndex].answer.split("\n").map((line, index) => (
-                    <div key={index}>{line}</div>
-                  ))}
-                </div>
-              </>
-            )}
+          {/* 음성 인식 UI 추가 */}
+          <div className="voice-control">
+            <ReactMic
+              record={isRecording}
+              className="sound-wave"
+              onStop={stopRecording}
+              strokeColor="#000000"
+              backgroundColor="#ffffff"
+            />
+            <div className="voice-buttons">
+              <button
+                onClick={startRecording}
+                disabled={isRecording}
+                className={`voice-button ${isRecording ? 'disabled' : ''}`}
+              >
+                🎤 음성으로 질문하기
+              </button>
+              <button
+                onClick={stopRecording}
+                disabled={!isRecording}
+                className={`voice-button stop ${!isRecording ? 'disabled' : ''}`}
+              >
+                ⏹ 음성 입력 중지
+              </button>
+            </div>
           </div>
+
+          {/* 채팅 히스토리 표시 */}
+          {renderMessageBox()}
 
           <div className="info-area">
             <div className="bus-info">

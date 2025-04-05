@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import Map from "./Map";
-import { ReactMic } from 'react-mic';
+import { v4 as uuidv4 } from "uuid"; // Import UUID library
 
 // API URL 관리
-const API_URL = "http://localhost:8000/chat";
+const API_URL = "http://localhost:8000/chat"; // Replace with the actual API URL
 
 // 응답 타입 정의
 type LocationResponse = {
@@ -41,14 +40,9 @@ enum QuestionType {
 
 // 위치 응답 컴포넌트
 const LocationComponent = ({ data }: { data: LocationResponse }) => (
-  <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
+  <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px" }}>
     <h3>📍 위치 찾기</h3>
     <p>{data.conversation_response}</p>
-    <Map 
-      coordinates={data.coordinates}
-      type="location"
-      places={data.places}
-    />
     <ul>
       {data.places.map((place, index) => (
         <li key={index}>✅ {place}</li>
@@ -58,33 +52,19 @@ const LocationComponent = ({ data }: { data: LocationResponse }) => (
 );
 
 // 길찾기 응답 컴포넌트
-const RouteComponent = ({ data }: { data: RouteResponse }) => {
-  const routeSteps = data.routes_text.split(/\d+\.\s/).filter((step) => step.trim() !== "");
-
-  return (
-    <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
-      <h3>🗺 길찾기</h3>
-      <p>{data.conversation_response}</p>
-      <Map 
-        coordinates={data.coordinates}
-        type="route"
-      />
-      <p>
-        <strong>🚶 이동 경로:</strong>
-      </p>
-      <ol>
-        {routeSteps.map((step, index) => (
-          <li key={index}>{step.trim()}</li>
-        ))}
-        <li><strong>도착!</strong></li>
-      </ol>
-    </div>
-  );
-};
+const RouteComponent = ({ data }: { data: RouteResponse }) => (
+  <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#f0fff0" }}>
+    <h3>🗺 길찾기</h3>
+    <p>{data.conversation_response}</p>
+    <p>
+      <strong>🚶 이동 경로:</strong> {data.routes_text}
+    </p>
+  </div>
+);
 
 // 버스 응답 컴포넌트
 const BusComponent = ({ data }: { data: BusResponse }) => (
-  <div style={{ border: "1px solid #007BFF", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
+  <div style={{ border: "1px solid #007BFF", padding: "10px", borderRadius: "5px", backgroundColor: "#e9f5ff" }}>
     <h3>🚌 버스 노선</h3>
     <p>{data.conversation_response}</p>
     <table border={1} style={{ width: "100%", textAlign: "left" }}>
@@ -108,174 +88,47 @@ const BusComponent = ({ data }: { data: BusResponse }) => (
 
 // 공지 응답 컴포넌트
 const NoticeComponent = ({ data }: { data: NoticeResponse }) => (
-  <div style={{ border: "1px solid #FF9800", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
-    <h3>📢 공지사항 및 일상</h3>
+  <div style={{ border: "1px solid #FF9800", padding: "10px", borderRadius: "5px", backgroundColor: "#FFF3E0" }}>
+    <h3>📢 공지사항</h3>
     <p>{data.response}</p>
   </div>
 );
 
-// Voice recognition type
-type SpeechRecognitionType = typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition;
-
-// 메인 컴포넌트
+// 메인 컴포넌트: 서버 연동을 시뮬레이션하는 더미 데이터와 비동기 처리를 포함
 const ResponseComponent = () => {
-  // Existing states
+  const [sessionId, setSessionId] = useState<string>(uuidv4()); // Initialize session_id with a UUID
   const [selectedType, setSelectedType] = useState<QuestionType | null>(null);
   const [responseData, setResponseData] = useState<any>(null);
-  const [userMessage, setUserMessage] = useState("");
-  const [chatResponse, setChatResponse] = useState<string>("질문하세요....");
+  const [userMessage, setUserMessage] = useState(""); // State for user input
+  const [chatResponse, setChatResponse] = useState<string | null>(null); // State for chatbot response
   const [isLoading, setIsLoading] = useState(false);
 
-  // Voice recognition states with proper typing
-  const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
-  const isRecordingRef = useRef(isRecording);
-
-  // Voice recognition states
-  const [transcriptToSend, setTranscriptToSend] = useState<string | null>(null);
-
-  // Initialize speech recognition
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognitionAPI) {
-        const recognizer = new SpeechRecognitionAPI() as SpeechRecognition;
-        recognizer.lang = 'ko-KR';
-        recognizer.continuous = false;
-        recognizer.interimResults = true;
-
-        recognizer.onstart = () => {
-          console.log('음성 인식 시작...');
-        };
-
-        recognizer.onresult = (event: SpeechRecognitionEvent) => {
-          const result = event.results[event.results.length - 1];
-          const transcript = result[0].transcript;
-          console.log('실시간 인식 텍스트:', transcript);
-          setUserMessage(transcript);
-        
-          // 음성 인식 문장이 끝났을 때 자동으로 전송
-          if (result.isFinal) {
-            console.log('문장 완료, 메시지 전송');
-            setTranscriptToSend(transcript);
-          }
-        };
-
-        recognizer.onerror = (event: SpeechRecognitionErrorEvent) => {
-          console.error('음성 인식 오류:', event.error);
-        };
-
-        recognizer.onend = () => {
-          console.log('음성 인식 종료');
-          if (userMessage.trim() !== "") {
-            sendMessageToAPI();
-          }
-          setIsRecording(false);
-        };
-
-        setRecognition(recognizer);
-      }
-    }
-  }, []);
-
-  // Add useEffect to handle API calls
-  useEffect(() => {
-    if (transcriptToSend) {
-      sendMessageToAPI();
-      setTranscriptToSend(null);
-    }
-  }, [transcriptToSend]);
-
-  // Text-to-Speech function
-  const speakText = async (text: string) => {
-    console.log('TTS 시작:', text); // 디버깅을 위한 로그 추가
-
-    const apiKey = process.env.REACT_APP_GOOGLE_TTS_API_KEY;
-    if (!apiKey) {
-      console.error('Google TTS API 키가 설정되지 않았습니다.');
-      return;
-    }
-
-    const API_URL = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
-
-    const requestBody = {
-      input: { text },
-      voice: {
-        languageCode: 'ko-KR',
-        name: 'ko-KR-Standard-A',  // 기본 한국어 음성으로 변경
-      },
-      audioConfig: {
-        audioEncoding: 'MP3',
-        speakingRate: 1.0,
-        pitch: 0,
-      },
-    };
-
-    try {
-      console.log('TTS API 요청 시작'); // 디버깅 로그
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API 요청 실패: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (!data.audioContent) {
-        throw new Error('오디오 콘텐츠가 없습니다.');
-      }
-
-      console.log('TTS 응답 수신'); // 디버깅 로그
-      const audioContent = data.audioContent;
-      const binaryString = atob(audioContent);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const blob = new Blob([bytes], { type: 'audio/mp3' });
-      const audioUrl = URL.createObjectURL(blob);
-      const audio = new Audio(audioUrl);
-      
-      console.log('오디오 재생 시작'); // 디버깅 로그
-      await audio.play();
-      
-      // 메모리 누수 방지를 위해 URL 해제
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl);
-      };
-    } catch (error) {
-      console.error('TTS 에러:', error);
-    }
-  };
-
-  // Modified sendMessageToAPI to include TTS
+  // Function to handle sending a message to the backend API
   const sendMessageToAPI = async () => {
-    if (!userMessage.trim()) return;
-    setIsLoading(true);
+    if (!userMessage.trim()) return; // Prevent empty messages
+    setIsLoading(true); // Set loading state to true
     try {
       const response = await axios.post(API_URL, {
         message: userMessage,
+        session_id: sessionId, // Use the current session_id
       });
 
-      const data = response.data;
-      let responseText = "";
+      // 서버 응답 데이터 디버깅
+      console.log("Server Response:", response.data);
 
+      // 응답 데이터 처리
+      const data = response.data;
+
+      // 응답 유형 추론
       let type: QuestionType | null = null;
       if (data.routes_text && data.coordinates) {
         type = QuestionType.Route;
-        responseText = data.conversation_response;
       } else if (data.places && data.coordinates) {
         type = QuestionType.Location;
-        responseText = data.conversation_response;
       } else if (data.available_buses && data.arrival_times) {
         type = QuestionType.Bus;
-        responseText = data.conversation_response;
       } else if (data.response && data.success) {
         type = QuestionType.Notice;
-        responseText = data.response;
       }
 
       if (!type) {
@@ -285,37 +138,29 @@ const ResponseComponent = () => {
 
       setSelectedType(type);
       setResponseData(data);
-      
-      // Speak the response
-      await speakText(responseText);
-      
     } catch (error) {
       console.error("Error communicating with the chatbot API:", error);
-      setChatResponse("오류가 발생했습니다. 다시 시도해주세요.");
+      setChatResponse("오류가 발생했습니다. 다시 시도해주세요."); // Error message
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Set loading state to false
     }
   };
 
-  // Voice control functions
-  const startRecording = () => {
-    if (recognition) {
-      setIsRecording(true);
-      recognition.start();
-    }
-  };
-
-  const stopRecording = () => {
-    if (recognition) {
-      setIsRecording(false);
-      recognition.stop();
-    }
+  // Function to reset the session_id
+  const resetSession = () => {
+    const newSessionId = uuidv4(); // Generate a new UUID
+    setSessionId(newSessionId); // Update the session_id state
+    setResponseData(null); // Clear previous responses
+    setSelectedType(null); // Reset selected type
+    setChatResponse(null); // Clear chat response
+    setUserMessage(""); // Clear user input
+    console.log("Session reset. New session_id:", newSessionId);
   };
 
   // 응답 데이터를 기반으로 적절한 컴포넌트를 렌더링
   const renderComponent = () => {
     if (!responseData) {
-      return <h3>{chatResponse}</h3>;
+      return <p>응답을 가져오는 중...</p>;
     }
 
     switch (selectedType) {
@@ -347,64 +192,30 @@ const ResponseComponent = () => {
   };
 
   return (
-    <div style={{ backgroundColor: "black", color: "white", minHeight: "100vh", padding: "20px" }}>
+    <div>
       <h1>챗봇 응답 테스트</h1>
       <div style={{ marginTop: "20px" }}>
+        <h2>현재 세션 ID: {sessionId}</h2> {/* Display the session_id */}
         <h2>챗봇과 대화하기</h2>
-        
-        {/* Voice Recording UI */}
-        <div style={{ marginBottom: "20px" }}>
-          <ReactMic
-            record={isRecording}
-            onStop={stopRecording}
-            mimeType="audio/wav"
-            strokeColor="#004080"
-            backgroundColor="#333"
-          />
-          <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-            <button
-              onClick={startRecording}
-              disabled={isRecording}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: isRecording ? "#666" : "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "5px"
-              }}
-            >
-              🎤 음성 입력 시작
-            </button>
-            <button
-              onClick={stopRecording}
-              disabled={!isRecording}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: !isRecording ? "#666" : "#FF5722",
-                color: "white",
-                border: "none",
-                borderRadius: "5px"
-              }}
-            >
-              ⏹ 음성 입력 중지
-            </button>
-          </div>
-        </div>
-
-        {/* Existing textarea and buttons */}
         <textarea
           value={userMessage}
           onChange={(e) => setUserMessage(e.target.value)}
           placeholder="챗봇에게 질문을 입력하세요."
-          style={{ width: "100%", height: "100px", marginBottom: "10px", backgroundColor: "#333", color: "white", border: "1px solid #555" }}
+          style={{ width: "100%", height: "100px", marginBottom: "10px" }}
         />
         <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={sendMessageToAPI}
-            style={{ padding: "10px 20px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px" }}
-            disabled={isLoading}
+            style={{ padding: "10px 20px" }}
+            disabled={isLoading} // Disable button when loading
           >
             {isLoading ? "전송 중..." : "전송"}
+          </button>
+          <button
+            onClick={resetSession}
+            style={{ padding: "10px 20px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "5px" }}
+          >
+            세션 초기화
           </button>
         </div>
         {isLoading && (
