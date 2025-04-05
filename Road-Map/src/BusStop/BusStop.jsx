@@ -157,6 +157,7 @@ function BusStop() {
   // Text-to-Speech function
   const speakText = async (text) => {
     const apiKey = process.env.REACT_APP_GOOGLE_TTS_API_KEY;
+    
     if (!apiKey) {
       console.error('Google TTS API 키가 설정되지 않았습니다.');
       return;
@@ -289,56 +290,49 @@ function BusStop() {
     <div className="response-card location">
       <h3>📍 위치 찾기</h3>
       <p>{data.conversation_response}</p>
+      
+      {/* 지도를 바로 표시 */}
+      {data.coordinates && (
+        <div className="map-container">
+          <Map
+            coordinates={data.coordinates}
+            type="location"
+            places={data.places}
+          />
+        </div>
+      )}
+      
       <ul>
         {data.places.map((place, index) => (
           <li key={index}>✅ {place}</li>
         ))}
       </ul>
-      {data.coordinates && (
-        <button 
-          className="show-map-btn"
-          onClick={() => {
-            setMapData({
-              type: 'location',
-              places: data.places,
-              coordinates: data.coordinates
-            });
-            setShowMap(true);
-          }}
-        >
-          🗺️ 지도에서 보기
-        </button>
-      )}
     </div>
   );
-  
+
   const RouteComponent = ({ data }) => (
     <div className="response-card route">
       <h3>🗺 길찾기</h3>
       <p>{data.conversation_response}</p>
+      
+      {/* 지도를 경로 설명 앞에 표시 */}
+      {data.coordinates && (
+        <div className="map-container">
+          <Map
+            coordinates={data.coordinates}
+            type="route"
+          />
+        </div>
+      )}
+      
       <div className="route-details">
         <p><strong>🚶 이동 경로:</strong></p>
         {data.routes_text.split('\n').map((step, index) => (
           <div key={index} className="route-step">
-            {step}
+            {index + 1}. {step}
           </div>
         ))}
       </div>
-      {data.coordinates && (
-        <button 
-          className="show-map-btn"
-          onClick={() => {
-            setMapData({
-              type: 'route',
-              coordinates: data.coordinates,
-              routes_text: data.routes_text
-            });
-            setShowMap(true);
-          }}
-        >
-          🗺️ 경로 보기
-        </button>
-      )}
     </div>
   );
   
