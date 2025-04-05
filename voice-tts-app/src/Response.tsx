@@ -131,6 +131,9 @@ const ResponseComponent = () => {
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const isRecordingRef = useRef(isRecording);
 
+  // Voice recognition states
+  const [transcriptToSend, setTranscriptToSend] = useState<string | null>(null);
+
   // Initialize speech recognition
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -146,11 +149,16 @@ const ResponseComponent = () => {
         };
 
         recognizer.onresult = (event: SpeechRecognitionEvent) => {
-          const transcript = Array.from(event.results)
-            .map(result => (result[0] as SpeechRecognitionAlternative).transcript)
-            .join('');
+          const result = event.results[event.results.length - 1];
+          const transcript = result[0].transcript;
           console.log('실시간 인식 텍스트:', transcript);
           setUserMessage(transcript);
+        
+          // 음성 인식 문장이 끝났을 때 자동으로 전송
+          if (result.isFinal) {
+            console.log('문장 완료, 메시지 전송');
+            setTranscriptToSend(transcript);
+          }
         };
 
         recognizer.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -169,6 +177,14 @@ const ResponseComponent = () => {
       }
     }
   }, []);
+
+  // Add useEffect to handle API calls
+  useEffect(() => {
+    if (transcriptToSend) {
+      sendMessageToAPI();
+      setTranscriptToSend(null);
+    }
+  }, [transcriptToSend]);
 
   // Text-to-Speech function
   const speakText = async (text: string) => {
