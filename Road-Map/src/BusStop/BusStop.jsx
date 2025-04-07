@@ -46,6 +46,8 @@ function BusStop() {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const [displayedText, setDisplayedText] = useState("");
+
   const updateTime = () => {
     const now = new Date();
     const hours = now.getHours();
@@ -237,6 +239,7 @@ function BusStop() {
   // 음성 제어 함수
   const startRecording = () => {
     if (recognition) {
+      setDisplayedText(""); // Clear displayed text when recording starts
       setIsRecording(true);
       recognition.start();
     }
@@ -656,6 +659,13 @@ function BusStop() {
             </svg>
           )}
         </button>
+        </div>
+      </div>
+
+      {/* Fixed area for real-time or final text */}
+      <div className="realtime-text-container">
+        <div className="realtime-text">
+          {displayedText || "-"}
         </div>
       </div>
 

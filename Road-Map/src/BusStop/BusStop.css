@@ -1075,3 +1075,27 @@
   width: 300px;  /* 말풍선 크기 조절 */
   height: auto;
 }
+
+.realtime-text-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 120px;
+  background-color: white;
+  border-bottom: 3px solid #049FD9FF;
+  margin: 0 auto; /* 가운데 정렬을 위해 추가 */
+  margin-top: 20px; /* 위쪽 여백 추가 */
+  margin-bottom: 5px; /* 아래쪽 여백 추가 */
+}
+
+.realtime-text {
+  font-size: 25px;
+  font-weight: bold;
+  color: #049FD9FF;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 10px; /* 텍스트 좌우 여백 추가 */
+}
