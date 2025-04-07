@@ -24,7 +24,6 @@
     font-size: 25px;
     font-weight: 500;
     gap: 15px;
-    margin-left: 2%;
     color: #049FD9FF;
 }
 
@@ -32,7 +31,6 @@
     width: 30px;
     height: 30px;
     color: #049FD9FF;
-    margin-left: 10px;
 }
 
 /* 오른쪽 상단 미세먼지, 온도 정보 영역 */
@@ -750,9 +748,10 @@
 .response-container {
   margin: 20px auto;
   padding: 20px;
-  min-width: 90%;
-  max-width: 90%;
+  min-width: 95%;
+  max-width: 95%;
   background-color: rgba(0, 0, 0, 0.0);
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
   border-radius: 16px;
   height: 50%; /* Fixed height for the response area */
   min-height: 40vh; /* Minimum height to ensure visibility */
