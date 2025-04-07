@@ -93,7 +93,7 @@ function BusStop() {
         setWeatherData({ dust: data.dust, temperature: data.temperature });
       } catch (error) {
         console.error("🌤️ Weather data fetch error: ", error);
-        setWeatherData({ dust: "정보가 없습니다", temperature: "정보가 없습니다" });
+        setWeatherData({ dust: "좋음", temperature: "17" });
       }
     };
 
@@ -495,7 +495,7 @@ function BusStop() {
       <div className="status-bar">
         <div className="time">
           {isDay ? (
-            <svg className="sun-icon" xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="sun-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="5"></circle>
               <line x1="12" y1="1" x2="12" y2="3"></line>
               <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -507,15 +507,15 @@ function BusStop() {
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
           ) : (
-            <svg className="moon-icon" xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="moon-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79z"></path>
             </svg>
           )}
           {currentTime}
         </div>
-        {/* 오른쪽 상단 미세먼지, 온도 정보 추가 */}
+        {/* 오른쪽 상단 미세먼지, 온도 정보 추가, 현재는 더미데이터 Room Bar 연동 시 실제 데이터 받아올 예정 */}
         <div className="weather-info">
-          <div className="dust">미세먼지: {weatherData.dust}</div>
+          <div className="dust">대기질: {weatherData.dust}</div>
           <div className="temperature">온도: {weatherData.temperature}°C</div>
         </div>
       </div>
