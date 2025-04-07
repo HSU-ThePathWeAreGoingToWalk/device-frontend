@@ -360,7 +360,7 @@ function BusStop() {
         <p><strong>🚶 이동 경로:</strong></p>
         {data.routes_text.split('\n').map((step, index) => (
           <div key={index} className="route-step">
-            {index + 1}. {step}
+            {step}
           </div>
         ))}
       </div>

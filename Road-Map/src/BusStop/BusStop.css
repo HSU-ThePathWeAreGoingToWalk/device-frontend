@@ -870,7 +870,7 @@
   box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
   border-radius: 16px;
   height: 50%; /* Fixed height for the response area */
-  min-height: 40vh; /* Minimum height to ensure visibility */
+  min-height: 50%; /* Minimum height to ensure visibility */
   overflow-y: auto; /* Enable vertical scrolling for long content */
   display: flex;
   flex-direction: column;
