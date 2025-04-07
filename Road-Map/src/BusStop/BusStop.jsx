@@ -524,106 +524,137 @@ function BusStop() {
         </div>
       </div>
 
-      <>
-        <div className="character-area">
-          <img src={characterImg} alt="캐릭터" className="character-image" />
-        </div>
+      <div className="character-area">
+        <img src={characterImg} alt="캐릭터" className="character-image" />
+        <button
+          onClick={toggleMute}
+          className={`voice-button mute ${isMuted ? 'active' : ''}`}
+          title={isMuted ? '음소거 해제' : '음소거'}
+        >
+          {isMuted ? (
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="40"
+              height="40"
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="white" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <line x1="23" y1="9" x2="17" y2="15" />
+              <line x1="17" y1="9" x2="23" y2="15" />
+            </svg>
+          ) : (
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="40"
+              height="40"
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="white" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+          )}
+        </button>
+      </div>
 
-        {/* 음성 인식 UI */}
-        <div className="voice-control">
-          <ReactMic
-            record={isRecording}
-            className="sound-wave"
-            onStop={stopRecording}
-            strokeColor="#049FD9FF" // Change waveform color to #049FD9FF
-            backgroundColor="#ffffff" // Change background color to white
-          />
-          <div className="voice-buttons">
-            <button
-              onClick={startRecording}
-              disabled={isRecording}
-              className={`voice-button ${isRecording ? 'disabled' : ''}`}
-            >
-              🎤 음성으로 질문하기
-            </button>
-            <button
-              onClick={stopRecording}
-              disabled={!isRecording}
-              className={`voice-button stop ${!isRecording ? 'disabled' : ''}`}
-            >
-              ⏹ 음성 입력 중지
-            </button>
-            <button
-              onClick={toggleMute}
-              className={`voice-button mute ${isMuted ? 'active' : ''}`}
-            >
-              {isMuted ? '🔇 음소거 해제' : '🔊 음소거'}
-            </button>
-            <button
-              onClick={refreshPage}
-              className="voice-button refresh"
-              title="화면 새로고침"
-            >
-              🔄
-            </button>
-          </div>
-        </div>
-
-        {/* 텍스트 입력 UI */}
-        <div className="text-input-container">
-          <input
-            type="text"
-            value={userMessage}
-            onChange={(e) => setUserMessage(e.target.value)}
-            placeholder="질문을 입력하세요..."
-            className="text-input"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && userMessage.trim()) {
-                sendMessageToAPI(userMessage);
-                setUserMessage('');
-              }
-            }}
-          />
+      {/* 음성 인식 UI */}
+      <div className="voice-control">
+        <ReactMic
+          record={isRecording}
+          className="sound-wave"
+          onStop={stopRecording}
+          strokeColor="#049FD9FF" // Change waveform color to #049FD9FF
+          backgroundColor="#ffffff" // Change background color to white
+        />
+        <div className="voice-buttons">
           <button
-            onClick={() => {
-              if (userMessage.trim()) {
-                sendMessageToAPI(userMessage);
-                setUserMessage('');
-              }
-            }}
-            className="send-button"
-            disabled={!userMessage.trim()}
+            onClick={startRecording}
+            disabled={isRecording}
+            className={`voice-button ${isRecording ? 'disabled' : ''}`}
           >
-            전송
+            🎤 음성으로 질문하기
+          </button>
+          <button
+            onClick={stopRecording}
+            disabled={!isRecording}
+            className={`voice-button stop ${!isRecording ? 'disabled' : ''}`}
+          >
+            ⏹ 음성 입력 중지
+          </button>
+          <button
+            onClick={refreshPage}
+            className="voice-button refresh"
+            title="화면 새로고침"
+          >
+            🔄
           </button>
         </div>
+      </div>
 
-        {/* 실시간 음성 인식 텍스트 */}
-        {isRecording && realtimeText && (
-          <div className="realtime-text">
-            {realtimeText}
-            <span className="recording-indicator">●</span>
-          </div>
-        )}
+      {/* 텍스트 입력 UI */}
+      <div className="text-input-container">
+        <input
+          type="text"
+          value={userMessage}
+          onChange={(e) => setUserMessage(e.target.value)}
+          placeholder="질문을 입력하세요..."
+          className="text-input"
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && userMessage.trim()) {
+              sendMessageToAPI(userMessage);
+              setUserMessage('');
+            }
+          }}
+        />
+        <button
+          onClick={() => {
+            if (userMessage.trim()) {
+              sendMessageToAPI(userMessage);
+              setUserMessage('');
+            }
+          }}
+          className="send-button"
+          disabled={!userMessage.trim()}
+        >
+          전송
+        </button>
+      </div>
 
-        {/* 응답 표시 영역 */}
-        {renderResponse()}
-
-        {/* 버스 정보 영역 */}
-        <div className="info-area">
-          <div className="bus-info">
-            {busInfo.number !== "정보가 없습니다" ? (
-              <>
-                <div className="bus-number">{busInfo.number}번 버스</div>
-                {busInfo.image && <img src={busInfo.image} alt="버스" className="bus-image" />}
-                <div className="arrival-time">도착 예정: {busInfo.arrivalTime}</div>
-              </>
-            ) : (
-              <div className="no-bus-info">버스 정보가 없습니다</div>
-            )}
-          </div>
+      {/* 실시간 음성 인식 텍스트 */}
+      {isRecording && realtimeText && (
+        <div className="realtime-text">
+          {realtimeText}
+          <span className="recording-indicator">●</span>
         </div>
-      </>
+      )}
+
+      {/* 응답 표시 영역 */}
+      {renderResponse()}
+
+      {/* 버스 정보 영역 */}
+      <div className="info-area">
+        <div className="bus-info">
+          {busInfo.number !== "정보가 없습니다" ? (
+            <>
+              <div className="bus-number">{busInfo.number}번 버스</div>
+              {busInfo.image && <img src={busInfo.image} alt="버스" className="bus-image" />}
+              <div className="arrival-time">도착 예정: {busInfo.arrivalTime}</div>
+            </>
+          ) : (
+            <div className="no-bus-info">버스 정보가 없습니다</div>
+          )}
+        </div>
+      </div>
 
       {/* 지도 오버레이 */}
       {showMap && mapData && (
