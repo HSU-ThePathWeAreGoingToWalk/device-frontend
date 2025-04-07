@@ -319,7 +319,7 @@ function BusStop() {
   // 응답 컴포넌트들 수정
   const LocationComponent = ({ data }) => (
     <div className="response-card location">
-      <h3>📍 위치 찾기</h3>
+      {/* <h3>📍 위치 찾기</h3> */}
       <p>{data.conversation_response}</p>
       
       {/* 지도를 바로 표시 */}
@@ -343,7 +343,7 @@ function BusStop() {
 
   const RouteComponent = ({ data }) => (
     <div className="response-card route">
-      <h3>🗺 길찾기</h3>
+      {/* <h3>🗺 길찾기</h3> */}
       <p>{data.conversation_response}</p>
       
       {/* 지도를 경로 설명 앞에 표시 */}
@@ -369,7 +369,7 @@ function BusStop() {
   
   const BusComponent = ({ data }) => (
     <div className="response-card bus">
-      <h3>🚌 버스 정보</h3>
+      {/* <h3>🚌 버스 정보</h3> */}
       <p>{data.conversation_response}</p>
       <table>
         <thead>
@@ -398,7 +398,7 @@ function BusStop() {
   
   const NoticeComponent = ({ data }) => (
     <div className="response-card notice">
-      <h3>📢 알림</h3>
+      {/* <h3>📢 알림</h3> */}
       <p>{data.response}</p>
     </div>
   );
@@ -417,13 +417,9 @@ function BusStop() {
 
     return (
       <div className="response-container">
-        <div className="user-question">
-          <h3>🗣️ 질문</h3>
-          <p>{userQuestion}</p>
-        </div>
         <div className="bot-response">
           {isLoading ? (
-            <div className="loading-message">답변을 생성하고 있습니다...</div>
+            <p className="loading-message">답변을 생성 중입니다...</p>
           ) : (
             <>
               {responseType === 'location' && <LocationComponent data={responseData} />}
@@ -665,7 +661,7 @@ function BusStop() {
       {/* Fixed area for real-time or final text */}
       <div className="realtime-text-container">
         <div className="realtime-text">
-          {displayedText || "-"}
+          {displayedText || "어떤 질문이든 괜찮아요!"}
         </div>
       </div>
 

@@ -874,15 +874,15 @@
   overflow-y: auto; /* Enable vertical scrolling for long content */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Align content to the top */
+  justify-content: flex-start; /* Align content to the top */
   align-items: center; /* Center content horizontally */
   box-sizing: border-box; /* Include padding in height calculation */
 }
 
 .response-container p {
-  color: #049FD9FF;
-  font-weight: bold; /* 볼드체 추가 */
-  font-size: 2rem; /* 글자 크기 증가 */
+  color: #000000; /* Change text color to black */
+  font-weight: normal; /* Remove bold styling */
+  font-size: 1.2rem; /* Reduce font size */
   text-align: center;
 }
 
@@ -909,8 +909,7 @@
   background-color: white;
   padding: 20px;
   border-radius: 12px;
-  margin: 10px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
   max-width: 100%; /* Ensure it doesn't exceed the container width */
   word-break: break-word; /* Handle long words gracefully */
   overflow: hidden; /* Prevent content overflow */
@@ -930,20 +929,19 @@
 .response-card.location li {
   padding: 8px;
   margin: 5px 0;
-  background-color: #f5f5f5;
+  background-color: #FFF;
   border-radius: 5px;
 }
 
 /* 길찾기 카드 */
 .response-card.route {
-  border: 1px solid #4CAF50;
-  background-color: #f0fff0;
+  background-color: #FFF;
 }
 
 .route-details {
   margin-top: 15px;
   padding: 15px;
-  background-color: #f5f5f5;
+  background-color: ;
   border-radius: 8px;
 }
 
@@ -957,8 +955,7 @@
 
 /* 버스 정보 카드 */
 .response-card.bus {
-  border: 1px solid #007BFF;
-  background-color: #e9f5ff;
+  background-color: #FFF;
 }
 
 .response-card.bus table {
@@ -980,8 +977,7 @@
 
 /* 알림 카드 */
 .response-card.notice {
-  border: 1px solid #FF9800;
-  background-color: #FFF3E0;
+  background-color: #FFF;
 }
 
 /* 지도 버튼 */
@@ -1006,6 +1002,21 @@
   color: #049FD9FF;
   font-style: italic;
   padding: 20px;
+}
+
+.response-container .initial-message,
+.response-container .loading-message {
+  color: #049FD9FF; /* Keep sky blue color */
+  font-weight: bold; /* Keep bold styling */
+  font-size: 1.5rem; /* Slightly larger font size */
+  text-align: center;
+}
+
+.response-container .bot-response p {
+  color: #000000; /* Keep chatbot response text black */
+  font-weight: normal; /* Remove bold styling */
+  font-size: 1.2rem; /* Keep smaller font size */
+  text-align: center;
 }
 
 /* 텍스트 입력 컨테이너 스타일 */
