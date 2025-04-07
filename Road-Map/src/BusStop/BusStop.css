@@ -510,18 +510,26 @@
 
 .voice-button.refresh {
   position: absolute;
-  top: 50px; /* Position below the time display */
-  left: 10px; /* Align to the left */
-  background-color: #2196F3;
-  padding: 8px 16px;
-  border-radius: 8px;
-  color: white;
-  font-size: 14px;
+  top: 50px;
+  left: 10px;
+  width: 60px;  /* 크기 증가 */
+  height: 60px; /* 크기 증가 */
+  border-radius: 50%; /* 원형으로 변경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #049FD9FF; /* 메인 컬러로 통일 */
+  box-shadow: 0 0 15px rgba(4, 159, 217, 0.5); /* 그림자 추가 */
   cursor: pointer;
+  padding: 0;
+  margin: 10px;
 }
 
 .voice-button.refresh:hover {
-  background-color: #1976D2;
+  background-color: #049FD9FF;
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(4, 159, 217, 0.6);
 }
 
 .voice-button.refresh {
