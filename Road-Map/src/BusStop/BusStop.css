@@ -370,14 +370,18 @@
 .voice-control {
   margin: 20px;
   padding: 15px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: white;
   border-radius: 16px;
+  display: flex; /* 추가 */
+  flex-direction: column; /* 추가 */
+  align-items: center; /* 추가 */
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
 }
 
 .sound-wave {
-  width: 100%;
+  width: 70%;
   height: 100px;
-  background-color: #333;
+  background-color: white;
   border-radius: 8px;
   margin-bottom: 20px;
 }
@@ -423,6 +427,14 @@
 
 .voice-button.mute.active:hover {
   background-color: #f4511e;
+}
+
+.voice-button.refresh {
+  background-color: #2196F3;
+}
+
+.voice-button.refresh:hover {
+  background-color: #1976D2;
 }
 
 /* 채팅 히스토리 스타일 */
@@ -673,7 +685,7 @@
 .voice-control {
   margin: 20px;
   padding: 15px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: white;
   border-radius: 16px;
 }
 

@@ -490,6 +490,10 @@ function BusStop() {
     return <div ref={mapRef} style={{ width: '100%', height: '400px' }} />;
   };
 
+  const refreshPage = () => {
+    window.location.reload(); // Reload the page
+  };
+
   return (
     <div className="app-container">
       <div className="status-bar">
@@ -531,8 +535,8 @@ function BusStop() {
             record={isRecording}
             className="sound-wave"
             onStop={stopRecording}
-            strokeColor="#000000"
-            backgroundColor="#ffffff"
+            strokeColor="#049FD9FF" // Change waveform color to #049FD9FF
+            backgroundColor="#ffffff" // Change background color to white
           />
           <div className="voice-buttons">
             <button
@@ -554,6 +558,13 @@ function BusStop() {
               className={`voice-button mute ${isMuted ? 'active' : ''}`}
             >
               {isMuted ? '🔇 음소거 해제' : '🔊 음소거'}
+            </button>
+            <button
+              onClick={refreshPage}
+              className="voice-button refresh"
+              title="화면 새로고침"
+            >
+              🔄
             </button>
           </div>
         </div>
