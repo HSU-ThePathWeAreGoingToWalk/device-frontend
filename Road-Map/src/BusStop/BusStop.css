@@ -1110,3 +1110,34 @@
   text-overflow: ellipsis;
   padding: 10px; /* 텍스트 좌우 여백 추가 */
 }
+
+.test-button:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(4, 159, 217, 0.6);
+}
+
+.response-card.notice p.greeting-text {
+  color: #049FD9FF;
+  font-size: 32px; /* 28px에서 32px로 증가 */
+  font-weight: bold;
+  text-align: center;
+  padding: 20px 0;
+  margin: 0;
+}
+
+/* 기존 notice 카드의 기본 스타일 수정 */
+.response-card.notice p:not(.greeting-text) {
+  color: inherit;
+  font-size: 24px; /* 일반 알림 메시지도 크기 증가 */
+  font-weight: normal;
+}
+
+.response-card.notice {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px; /* 패딩도 약간 증가 */
+  margin: 20px 0;
+  background-color: white;
+}

@@ -398,8 +398,9 @@ function BusStop() {
   
   const NoticeComponent = ({ data }) => (
     <div className="response-card notice">
-      {/* <h3>📢 알림</h3> */}
-      <p>{data.response}</p>
+      <p className={data.response === "안녕하세요, 오늘은 어디 가시나요?" ? "greeting-text" : ""}>
+        {data.response}
+      </p>
     </div>
   );
 
@@ -502,6 +503,34 @@ function BusStop() {
       window.location.reload(); // Reload the page
     }, 1000);
   };
+
+  // BusStop 컴포넌트 내에 새로운 함수 추가
+const startGreetingSequence = async () => {
+  const greetingText = "안녕하세요, 오늘은 어디 가시나요?";
+  
+  // 응답 데이터 설정
+  setResponseType('notice');
+  setResponseData({
+    response: greetingText,
+    success: true
+  });
+
+  try {
+    // TTS 실행
+    await speakText(greetingText);
+    
+    // TTS 완료 후 자동으로 음성 인식 시작
+    setTimeout(() => {
+      if (!isRecording) {
+        startRecording();
+      }
+    }, 500);
+  } catch (error) {
+    console.error("Greeting sequence error:", error);
+  }
+};
+
+// return 문 안의 마지막 부분 (text-input-container 위에 추가)
 
   return (
     <div className="app-container">
@@ -661,17 +690,18 @@ function BusStop() {
       {/* Fixed area for real-time or final text */}
       <div className="realtime-text-container">
         <div className="realtime-text">
-          {displayedText || "어떤 질문이든 괜찮아요!"}
+          {realtimeText || userMessage}
+          {realtimeText && <span className="recording-indicator">●</span>}
         </div>
       </div>
 
       {/* 실시간 음성 인식 텍스트 */}
-      {isRecording && realtimeText && (
+      {/* {isRecording && realtimeText && (
         <div className="realtime-text">
           {realtimeText}
           <span className="recording-indicator">●</span>
         </div>
-      )}
+      )} */}
 
       {/* 응답 표시 영역 */}
       {renderResponse()}
@@ -705,6 +735,29 @@ function BusStop() {
         </div>
       )}
 
+    <div style={{   
+      position: 'fixed', 
+      bottom: '80px', 
+      left: '50%', 
+      transform: 'translateX(-50%)',
+      zIndex: 1000 
+    }}>
+      <button
+        onClick={startGreetingSequence}
+        className="test-button"
+        style={{
+          padding: '12px 24px',
+          backgroundColor: '#049FD9FF',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontSize: '16px'
+        }}
+      >
+        인사 시작하기
+      </button>
+    </div>
       {/* 텍스트 입력 UI */}
       <div className="text-input-container">
         <input
