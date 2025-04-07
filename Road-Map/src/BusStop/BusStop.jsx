@@ -44,6 +44,8 @@ function BusStop() {
   const [showMap, setShowMap] = useState(false);
   const [mapData, setMapData] = useState(null);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const updateTime = () => {
     const now = new Date();
     const hours = now.getHours();
@@ -403,7 +405,9 @@ function BusStop() {
     if (!responseData) {
       return (
         <div className="response-container">
-          <p style={{ color: '#FFF', fontStyle: 'italic' }}>챗봇의 답변이 여기에 표시됩니다.</p>
+          <p className="initial-message">
+            {isRecording ? "듣는 중입니다..." : "위 버튼을 눌러 대화를 시작하세요!"}
+          </p>
         </div>
       );
     }
@@ -493,7 +497,11 @@ function BusStop() {
   };
 
   const refreshPage = () => {
-    window.location.reload(); // Reload the page
+    setIsRefreshing(true); // Trigger animation
+    setTimeout(() => {
+      setIsRefreshing(false); // Reset animation after 1 second
+      window.location.reload(); // Reload the page
+    }, 1000);
   };
 
   return (
@@ -521,7 +529,7 @@ function BusStop() {
         </div>
         <button
           onClick={refreshPage}
-          className="voice-button refresh"
+          className={`voice-button refresh ${isRefreshing ? 'rotating' : ''}`}
           title="화면 새로고침"
         >
           <svg 

@@ -395,7 +395,7 @@
   height: 100px;
   background-color: white;
   border-radius: 50px;
-  filter: drop-shadow(0 0 4px rgba(4, 159, 217, 0.5));
+  
 }
 
 .voice-button.toggle-record {
@@ -538,6 +538,25 @@
 
 .voice-button.refresh:hover {
   background-color: #1976D2;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: ease-in;
+  }
+  50% {
+    transform: rotate(180deg);
+    animation-timing-function: linear;
+  }
+  100% {
+    transform: rotate(360deg);
+    animation-timing-function: ease-out;
+  }
+}
+
+.voice-button.refresh.rotating {
+  animation: rotate 1s;
 }
 
 /* 채팅 히스토리 스타일 */
@@ -855,9 +874,16 @@
   overflow-y: auto; /* Enable vertical scrolling for long content */
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Align content to the top */
+  justify-content: center; /* Align content to the top */
   align-items: center; /* Center content horizontally */
   box-sizing: border-box; /* Include padding in height calculation */
+}
+
+.response-container p {
+  color: #049FD9FF;
+  font-weight: bold; /* 볼드체 추가 */
+  font-size: 2rem; /* 글자 크기 증가 */
+  text-align: center;
 }
 
 .response-container::-webkit-scrollbar {
@@ -963,7 +989,7 @@
   margin-top: 15px;
   padding: 10px 20px;
   background-color: #4CAF50;
-  color: white;
+  color: #049FD9FF;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -977,7 +1003,7 @@
 /* 로딩 메시지 */
 .loading-message {
   text-align: center;
-  color: #FFF;
+  color: #049FD9FF;
   font-style: italic;
   padding: 20px;
 }
@@ -1049,4 +1075,3 @@
   width: 300px;  /* 말풍선 크기 조절 */
   height: auto;
 }
-
