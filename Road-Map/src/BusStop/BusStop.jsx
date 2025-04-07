@@ -519,6 +519,13 @@ function BusStop() {
           )}
           {currentTime}
         </div>
+        <button
+          onClick={refreshPage}
+          className="voice-button refresh"
+          title="화면 새로고침"
+        >
+          🔄
+        </button>
         {/* 오른쪽 상단 미세먼지, 온도 정보 추가, 현재는 더미데이터 Room Bar 연동 시 실제 데이터 받아올 예정 */}
         <div className="weather-info">
           <div className="dust">대기질: {weatherData.dust}</div>
@@ -590,19 +597,42 @@ function BusStop() {
           backgroundColor="#ffffff"
         />
         <div className="voice-buttons">
-          <button
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
-          >
-            {isRecording ? '⏹ 음성 입력 중지' : '🎤 음성으로 질문하기'}
-          </button>
-          <button
-            onClick={refreshPage}
-            className="voice-button refresh"
-            title="화면 새로고침"
-          >
-            🔄
-          </button>
+        <button
+          onClick={isRecording ? stopRecording : startRecording}
+          className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
+        >
+          {isRecording ? (
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="40" 
+              height="40" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="white"
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <rect x="6" y="4" width="12" height="16" rx="2" ry="2" />
+            </svg>
+          ) : (
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="40" 
+              height="40" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="white"
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+            </svg>
+          )}
+        </button>
         </div>
       </div>
 
