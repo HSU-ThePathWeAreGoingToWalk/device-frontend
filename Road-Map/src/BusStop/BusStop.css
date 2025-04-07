@@ -406,6 +406,22 @@
   background-color: #f44336;
 }
 
+.voice-button.mute {
+  background-color: #757575;
+}
+
+.voice-button.mute.active {
+  background-color: #ff5722;
+}
+
+.voice-button.mute:hover {
+  background-color: #616161;
+}
+
+.voice-button.mute.active:hover {
+  background-color: #f4511e;
+}
+
 /* 채팅 히스토리 스타일 */
 .chat-history {
   flex: 1;

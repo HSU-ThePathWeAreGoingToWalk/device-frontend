@@ -28,6 +28,8 @@ function BusStop() {
   const [userQuestion, setUserQuestion] = useState("");
   const [responseType, setResponseType] = useState(null);
   const [responseData, setResponseData] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef(null);
 
   // Voice recognition states
   const isRecordingRef = useRef(isRecording);
@@ -156,6 +158,8 @@ function BusStop() {
 
   // Text-to-Speech function
   const speakText = async (text) => {
+    if (isMuted) return; // 음소거 상태면 실행하지 않음
+    
     const apiKey = process.env.REACT_APP_GOOGLE_TTS_API_KEY;
     
     if (!apiKey) {
@@ -197,12 +201,32 @@ function BusStop() {
       }
       const blob = new Blob([bytes], { type: 'audio/mp3' });
       const audioUrl = URL.createObjectURL(blob);
+      
+      // 기존 오디오 중지 및 새 오디오 생성
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      
       const audio = new Audio(audioUrl);
+      audioRef.current = audio;
       await audio.play();
 
-      audio.onended = () => URL.revokeObjectURL(audioUrl);
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
     } catch (error) {
       console.error('TTS 에러:', error);
+    }
+  };
+
+  // 음소거 토글 함수
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
     }
   };
 
@@ -518,6 +542,12 @@ function BusStop() {
               className={`voice-button stop ${!isRecording ? 'disabled' : ''}`}
             >
               ⏹ 음성 입력 중지
+            </button>
+            <button
+              onClick={toggleMute}
+              className={`voice-button mute ${isMuted ? 'active' : ''}`}
+            >
+              {isMuted ? '🔇 음소거 해제' : '🔊 음소거'}
             </button>
           </div>
         </div>
