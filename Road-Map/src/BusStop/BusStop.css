@@ -22,7 +22,7 @@
     display: flex;
     align-items: center;
     font-size: 25px;
-    font-weight: 500;
+    font-weight: 800;
     gap: 15px;
     color: #049FD9FF;
 }
@@ -44,6 +44,7 @@
 .dust, .temperature {
     margin-top: 10px;
     font-size: 25px;
+    font-weight: 800;
     color: #049FD9FF;
 }
 
@@ -373,9 +374,10 @@
   padding: 15px;
   background-color: white;
   border-radius: 16px;
-  display: flex; /* 추가 */
-  flex-direction: column; /* 추가 */
-  align-items: center; /* 추가 */
+  display: flex;
+  flex-direction: row; /* Arrange items horizontally */
+  align-items: center; /* Center items vertically */
+  justify-content: space-between; /* Add spacing between items */
   box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -384,14 +386,29 @@
   height: 100px;
   background-color: white;
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin: 0 20px; /* Add spacing between buttons and waveform */
+  filter: drop-shadow(0 0 4px rgba(4, 159, 217, 0.5)); /* Add shadow to waveform */
+}
+
+.voice-button.toggle-record {
+  width: 200px;
+  transition: all 0.3s ease;
+  background-color: #4CAF50;
+}
+
+.voice-button.toggle-record.recording {
+  background-color: #f44336;
+}
+
+.voice-button.toggle-record:hover {
+  opacity: 0.9;
 }
 
 .voice-buttons {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  justify-content: center;
-  margin-top: 10px;
+  align-items: center;
 }
 
 .voice-button {
@@ -718,14 +735,6 @@
   0% { opacity: 0; }
   50% { opacity: 1; }
   100% { opacity: 0; }
-}
-
-/* 음성 인식 컨트롤 */
-.voice-control {
-  margin: 20px;
-  padding: 15px;
-  background-color: white;
-  border-radius: 16px;
 }
 
 .voice-buttons {

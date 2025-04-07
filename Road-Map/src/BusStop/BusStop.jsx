@@ -586,23 +586,15 @@ function BusStop() {
           record={isRecording}
           className="sound-wave"
           onStop={stopRecording}
-          strokeColor="#049FD9FF" // Change waveform color to #049FD9FF
-          backgroundColor="#ffffff" // Change background color to white
+          strokeColor="#049FD9FF"
+          backgroundColor="#ffffff"
         />
         <div className="voice-buttons">
           <button
-            onClick={startRecording}
-            disabled={isRecording}
-            className={`voice-button ${isRecording ? 'disabled' : ''}`}
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
           >
-            🎤 음성으로 질문하기
-          </button>
-          <button
-            onClick={stopRecording}
-            disabled={!isRecording}
-            className={`voice-button stop ${!isRecording ? 'disabled' : ''}`}
-          >
-            ⏹ 음성 입력 중지
+            {isRecording ? '⏹ 음성 입력 중지' : '🎤 음성으로 질문하기'}
           </button>
           <button
             onClick={refreshPage}
