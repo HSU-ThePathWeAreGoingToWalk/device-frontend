@@ -168,7 +168,10 @@
 
 /* 캐릭터 이미지 크기 조정 */
 .character-image {
-    width: 300px; 
+  width: 300px;  /* 고정된 너비 */
+  height: 300px; /* 고정된 높이 */
+  object-fit: contain; /* 이미지 비율 유지하면서 컨테이너에 맞춤 */
+  margin: 10px 0;
 }
 
 /* 메시지 상자 */
@@ -963,4 +966,31 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bubble-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bubble-image {
+  width: 300px;  /* 말풍선 크기 조절 */
+  height: auto;
+}
+
+.voice-button.mute {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-30%, -90%);
+  background-color: #757575;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1; /* 말풍선 위에 버튼이 오도록 설정 */
 }
