@@ -522,7 +522,8 @@
   box-shadow: 0 0 15px rgba(4, 159, 217, 0.5); /* 그림자 추가 */
   cursor: pointer;
   padding: 0;
-  margin: 10px;
+  margin-top: 30px;
+  margin-left: 20px;
 }
 
 .voice-button.refresh:hover {
@@ -1008,7 +1009,7 @@
 .response-container .loading-message {
   color: #049FD9FF; /* Keep sky blue color */
   font-weight: bold; /* Keep bold styling */
-  font-size: 1.5rem; /* Slightly larger font size */
+  font-size: 2rem; /* Slightly larger font size */
   text-align: center;
 }
 
@@ -1184,4 +1185,32 @@
 @keyframes modalPulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cisco-logo {
+  height: 30px;
+  width: auto;
+  margin-right: 20px; /* 로고와 시간 사이 간격 */
+}
+
+.time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto; /* 시간을 왼쪽으로 밀착 */
+}
+
+.weather-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-left: auto; /* 날씨 정보를 오른쪽으로 밀착 */
 }

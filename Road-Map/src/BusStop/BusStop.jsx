@@ -11,6 +11,7 @@ import shipImg from "./ship.png";
 import walkingImg from "./walking.png";
 import Map from '../Map/Map.tsx';  // Update this line
 import { v4 as uuidv4 } from "uuid";
+import ciscoLogo from "./cisco_logo.png";
 
 function BusStop() {
   const [currentTime, setCurrentTime] = useState("");
@@ -572,6 +573,11 @@ const handleCloseEmergency = () => {
   return (
     <div className="app-container">
       <div className="status-bar">
+        <img 
+          src={ciscoLogo} 
+          alt="Cisco Logo" 
+          className="cisco-logo"
+        />
         <div className="time">
           {isDay ? (
             <svg className="sun-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
