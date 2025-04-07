@@ -733,48 +733,50 @@
 
 /* 응답 컨테이너 스타일 */
 .response-container {
-  margin: 20px;
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.5);
-  border-radius: 16px;
-  max-width: 800px;
   margin: 20px auto;
+  padding: 20px;
+  min-width: 90%;
+  max-width: 90%;
+  background-color: rgba(0, 0, 0, 0.0);
+  border-radius: 16px;
+  height: 50%; /* Fixed height for the response area */
+  min-height: 40vh; /* Minimum height to ensure visibility */
+  overflow-y: auto; /* Enable vertical scrolling for long content */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align content to the top */
+  align-items: center; /* Center content horizontally */
+  box-sizing: border-box; /* Include padding in height calculation */
 }
 
-.user-question {
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 20px;
+.response-container::-webkit-scrollbar {
+  width: 6px;
 }
 
-.user-question h3 {
-  margin: 0 0 10px 0;
-  color: #FFF;
+.response-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
 }
 
-.user-question p {
-  margin: 0;
-  color: #FFF;
-  font-size: 16px;
+.response-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
 }
 
+.response-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Adjust response card styles to fit within the container */
 .response-card {
   background-color: white;
   padding: 20px;
   border-radius: 12px;
   margin: 10px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.response-card h3 {
-  margin: 0 0 15px 0;
-  color: #333;
-}
-
-.response-card p {
-  margin: 10px 0;
-  line-height: 1.5;
+  max-width: 100%; /* Ensure it doesn't exceed the container width */
+  word-break: break-word; /* Handle long words gracefully */
+  overflow: hidden; /* Prevent content overflow */
 }
 
 /* 위치 찾기 카드 */

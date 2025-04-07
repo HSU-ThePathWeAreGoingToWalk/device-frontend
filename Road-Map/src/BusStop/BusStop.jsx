@@ -398,7 +398,13 @@ function BusStop() {
 
   // renderResponse 함수 수정
   const renderResponse = () => {
-    if (!responseData) return null;
+    if (!responseData) {
+      return (
+        <div className="response-container">
+          <p style={{ color: '#FFF', fontStyle: 'italic' }}>챗봇의 답변이 여기에 표시됩니다.</p>
+        </div>
+      );
+    }
 
     return (
       <div className="response-container">
