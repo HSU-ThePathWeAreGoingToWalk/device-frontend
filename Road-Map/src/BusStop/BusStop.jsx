@@ -16,7 +16,10 @@ function BusStop() {
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
   const [weatherData, setWeatherData] = useState({ dust: "", temperature: "" });
+  // 상태 추가 (BusStop 컴포넌트 최상단)
+  const [isEmergency, setIsEmergency] = useState(false);
   const [busInfo, setBusInfo] = useState({ 
+    
     number: "", 
     image: "", 
     arrivalTime: "",
@@ -530,6 +533,40 @@ const startGreetingSequence = async () => {
   }
 };
 
+// 비상 상황 처리 함수 추가
+const handleEmergency = () => {
+  // 진행 중인 음성 출력 중지
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current = null;
+  }
+
+  // 음성 인식 중지
+  if (recognition && isRecording) {
+    recognition.stop();
+  }
+
+  // 모든 상태 초기화
+  setIsRecording(false);
+  setRealtimeText("");
+  setUserMessage("");
+  setResponseType(null);
+  setResponseData(null);
+  setIsLoading(false);
+
+  // 화면 새로고침 효과 및 비상 모달 표시
+  setIsRefreshing(true);
+  setTimeout(() => {
+    setIsRefreshing(false);
+    setIsEmergency(true);
+  }, 1000);
+};
+
+// 모달 닫기 함수 추가
+const handleCloseEmergency = () => {
+  setIsEmergency(false);
+};
+
 // return 문 안의 마지막 부분 (text-input-container 위에 추가)
 
   return (
@@ -735,29 +772,57 @@ const startGreetingSequence = async () => {
         </div>
       )}
 
-    <div style={{   
-      position: 'fixed', 
-      bottom: '80px', 
-      left: '50%', 
-      transform: 'translateX(-50%)',
-      zIndex: 1000 
-    }}>
-      <button
-        onClick={startGreetingSequence}
-        className="test-button"
-        style={{
-          padding: '12px 24px',
-          backgroundColor: '#049FD9FF',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontSize: '16px'
-        }}
-      >
-        인사 시작하기
-      </button>
-    </div>
+        {/* 인사 시작하기 버튼 있는 부분 수정 */}
+        <div style={{   
+          position: 'fixed', 
+          bottom: '80px', 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          display: 'flex',
+          gap: '20px'
+        }}>
+          <button
+            onClick={startGreetingSequence}
+            className="test-button"
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#049FD9FF',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            인사 시작하기
+          </button>
+          <button
+            onClick={handleEmergency}
+            className="emergency-button"
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#ff0000',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            비상 상황
+          </button>
+        </div>
+
+        {/* 비상 상황 모달 */}
+        {isEmergency && (
+          <div className="emergency-overlay" onClick={handleCloseEmergency}>
+            <div className="emergency-modal" onClick={e => e.stopPropagation()}>
+              <h2>비상 버튼이 눌렸습니다!</h2>
+              <h2>관리자와 연락 시도중이니 잠시만 기다려 주십시오</h2>
+            </div>
+          </div>
+        )}
       {/* 텍스트 입력 UI */}
       <div className="text-input-container">
         <input
