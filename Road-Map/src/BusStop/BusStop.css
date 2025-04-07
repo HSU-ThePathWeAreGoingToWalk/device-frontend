@@ -984,13 +984,16 @@
 
 /* 텍스트 입력 컨테이너 스타일 */
 .text-input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
   display: flex;
   gap: 10px;
   padding: 15px;
-  margin: 10px auto;
-  max-width: 600px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .text-input {

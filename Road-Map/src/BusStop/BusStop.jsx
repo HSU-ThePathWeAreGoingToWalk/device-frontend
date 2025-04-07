@@ -651,35 +651,6 @@ function BusStop() {
         </div>
       </div>
 
-      {/* 텍스트 입력 UI */}
-      <div className="text-input-container">
-        <input
-          type="text"
-          value={userMessage}
-          onChange={(e) => setUserMessage(e.target.value)}
-          placeholder="질문을 입력하세요..."
-          className="text-input"
-          onKeyPress={(e) => {
-            if (e.key === 'Enter' && userMessage.trim()) {
-              sendMessageToAPI(userMessage);
-              setUserMessage('');
-            }
-          }}
-        />
-        <button
-          onClick={() => {
-            if (userMessage.trim()) {
-              sendMessageToAPI(userMessage);
-              setUserMessage('');
-            }
-          }}
-          className="send-button"
-          disabled={!userMessage.trim()}
-        >
-          전송
-        </button>
-      </div>
-
       {/* 실시간 음성 인식 텍스트 */}
       {isRecording && realtimeText && (
         <div className="realtime-text">
@@ -719,6 +690,35 @@ function BusStop() {
           </button>
         </div>
       )}
+
+      {/* 텍스트 입력 UI */}
+      <div className="text-input-container">
+        <input
+          type="text"
+          value={userMessage}
+          onChange={(e) => setUserMessage(e.target.value)}
+          placeholder="질문을 입력하세요..."
+          className="text-input"
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && userMessage.trim()) {
+              sendMessageToAPI(userMessage);
+              setUserMessage('');
+            }
+          }}
+        />
+        <button
+          onClick={() => {
+            if (userMessage.trim()) {
+              sendMessageToAPI(userMessage);
+              setUserMessage('');
+            }
+          }}
+          className="send-button"
+          disabled={!userMessage.trim()}
+        >
+          전송
+        </button>
+      </div>
     </div>
   );
 }
