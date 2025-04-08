@@ -1,0 +1,176 @@
+/* 전체 컨테이너 */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: white;
+    font-family: 'Arial', sans-serif;
+}
+
+/* 상단 상태바 */
+.status-bar {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 시간 표시 */
+.time {
+    display: flex;
+    align-items: center;
+    font-size: 25px;
+    font-weight: 800;
+    gap: 15px;
+    color: #049FD9FF;
+    margin-right: auto; /* 시간을 왼쪽으로 밀착 */
+}
+
+.sun-icon, .moon-icon {
+    width: 30px;
+    height: 30px;
+    color: #049FD9FF;
+}
+
+/* 오른쪽 상단 미세먼지, 온도 정보 영역 */
+.weather-info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-left: auto; /* 날씨 정보를 오른쪽으로 밀착 */
+    margin-right: 3%;
+}
+
+.dust, .temperature {
+    margin-top: 10px;
+    font-size: 25px;
+    font-weight: 800;
+    color: #049FD9FF;
+}
+
+/* 캐릭터 영역 */
+.character-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 300px;
+}
+
+/* 캐릭터 이미지 크기 조정 */
+.character-image {
+  width: 300px;  /* 고정된 너비 */
+  height: 300px; /* 고정된 높이 */
+  object-fit: contain; /* 이미지 비율 유지하면서 컨테이너에 맞춤 */
+}
+
+.bubble-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bubble-image {
+  width: 300px;  /* 말풍선 크기 조절 */
+  height: auto;
+}
+
+/* 응답 컨테이너 스타일 */
+.response-container {
+  margin: 20px auto;
+  padding: 20px;
+  min-width: 95%;
+  max-width: 95%;
+  background-color: rgba(0, 0, 0, 0.0);
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  height: 50%; /* Fixed height for the response area */
+  min-height: 50%; /* Minimum height to ensure visibility */
+  overflow-y: auto; /* Enable vertical scrolling for long content */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align content to the top */
+  align-items: center; /* Center content horizontally */
+  box-sizing: border-box; /* Include padding in height calculation */
+}
+
+.response-container p {
+  color: #000000;
+  font-weight: normal;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.response-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.response-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.response-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.response-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 하단 정보 영역 */
+.info-area {
+  margin: 20px;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+}
+
+.realtime-text-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 120px;
+  background-color: white;
+  border-bottom: 3px solid #049FD9FF;
+  margin: 0 auto;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+
+.realtime-text {
+  font-size: 25px;
+  font-weight: bold;
+  color: #049FD9FF;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 10px;
+}
+
+/* 텍스트 입력 컨테이너 스타일 */
+.text-input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cisco-logo {
+  height: 30px;
+  width: auto;
+  margin-right: 20px;
+}
