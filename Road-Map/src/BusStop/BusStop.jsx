@@ -34,7 +34,10 @@ function BusStop() {
   const [userQuestion, setUserQuestion] = useState("");
   const [responseType, setResponseType] = useState(null);
   const [responseData, setResponseData] = useState(null);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => {
+    const savedMuteState = localStorage.getItem('isMuted');
+    return savedMuteState ? JSON.parse(savedMuteState) : false;
+  });
   const audioRef = useRef(null);
 
   // Voice recognition states
@@ -231,11 +234,15 @@ function BusStop() {
     }
   };
 
-  // 음소거 토글 함수
+  // 음소거 토글 함수 수정
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    const newMuteState = !isMuted;
+    setIsMuted(newMuteState);
+    localStorage.setItem('isMuted', JSON.stringify(newMuteState));
+    
     if (audioRef.current) {
       audioRef.current.pause();
+      URL.revokeObjectURL(audioRef.current.src);
       audioRef.current = null;
     }
   };
@@ -269,6 +276,8 @@ function BusStop() {
       const data = response.data;
       console.log("Server Response:", data);
   
+      let responseText = ''; // TTS에 사용될 텍스트를 저장할 변수
+  
       // 응답 유형 추론 및 데이터 처리
       if (data.places && data.coordinates) {
         setResponseType('location');
@@ -277,6 +286,7 @@ function BusStop() {
           coordinates: data.coordinates,
           conversation_response: data.conversation_response
         });
+        responseText = data.conversation_response;
       } 
       else if (data.routes_text && data.coordinates) {
         setResponseType('route');
@@ -285,6 +295,7 @@ function BusStop() {
           coordinates: data.coordinates,
           conversation_response: data.conversation_response
         });
+        responseText = data.conversation_response;
       }
       else if (data.available_buses && data.arrival_times) {
         setResponseType('bus');
@@ -294,6 +305,7 @@ function BusStop() {
           conversation_response: data.conversation_response,
           alternative_path: data.alternative_path
         });
+        responseText = data.conversation_response;
       }
       else {
         setResponseType('notice');
@@ -301,10 +313,14 @@ function BusStop() {
           response: data.response || data.conversation_response,
           success: true
         });
+        responseText = data.response || data.conversation_response;
       }
       
-      await speakText(data.response || data.conversation_response);
-      // 모든 텍스트 입력 초기화
+      // 음소거 상태 확인 후 TTS 실행
+      if (!isMuted && responseText) {
+        await speakText(responseText);
+      }
+  
       setUserMessage("");
       setRealtimeText("");
       
@@ -616,7 +632,7 @@ const handleCloseEmergency = () => {
           >
             <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
             <path d="M21 3v5h-5" />
-            <path d="M21 12a9 9 0 0 1-9 9-9.75 9.75 0 0 1-6.74-2.74L3 16" />
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
             <path d="M3 21v-5h5" />
           </svg>
         </button>
