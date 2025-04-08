@@ -7,6 +7,8 @@ import subwayImg from "./subway.png";
 import shipImg from "./ship.png";
 import walkingImg from "./walking.png";
 
+import { stationCoordsMap } from "./BusRouteMap";
+
 function BusStop() {
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
@@ -29,6 +31,47 @@ function BusStop() {
   const [animationPosition, setAnimationPosition] = useState({ x: 0, y: 0 });
   const mapContainerRef = useRef(null);
   const animationFrameRef = useRef(null);
+
+  // 버스 현재 위치 마커 렌더링
+  const renderCurrentLocationMarker = () => {
+    if (!busInfo.number || !busInfo.currentLocation) return null;
+    const coords = stationCoordsMap[busInfo.number]?.[busInfo.currentLocation];
+    if (!coords) return null;
+
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: coords.top * 0.0625,
+          left: coords.left * 0.0625,
+          width: 6,
+          height: 6,
+          backgroundColor: "red",
+          borderRadius: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 10
+        }}
+        title={busInfo.currentLocation}
+      />
+    );
+  };
+
+  // 버스 노선도 이미지 렌더링
+  const renderBusRouteImage = () => {
+    if (!busInfo.number) return null;
+    const imageSrc = `/bus_images/${busInfo.number}.png`;
+
+    return (
+      <div style={{ position: "relative", width: "100px" }}>
+        <img
+          src={imageSrc}
+          alt={`${busInfo.number}번 버스 노선도`}
+          style={{ width: "100%", height: "auto" }}
+        />
+        {renderCurrentLocationMarker()}
+      </div>
+    );
+  };
 
   const chatOptions = [
     {
@@ -74,7 +117,7 @@ function BusStop() {
   useEffect(() => {
     const fetchBusData = async () => {
       try {
-        const response = await axios.get("https://your-backend.com/api/fastest-bus");
+        const response = await axios.get("http://localhost:8000/bus");
         const { number, image, arrivalTime, currentLocation, stops } = response.data;
         setBusInfo({ 
           number, 
@@ -423,22 +466,22 @@ function BusStop() {
           </div>
 
           <div className="info-area">
-            <div className="bus-info">
-              {busInfo.number !== "정보가 없습니다" ? (
-                <>
-                  <div className="bus-number">{busInfo.number}번 버스 현재 위치</div>
-                  {busInfo.image && <img src={busInfo.image} alt="버스" className="bus-image" />}
-                  {renderBusRoute()}
-                  <div className="arrival-time">{busInfo.arrivalTime}</div>
-                </>
-              ) : (
+            {busInfo.number && busInfo.number !== "정보가 없습니다" ? (
+              <div className="bus-info">
+                <div className="bus-number">{busInfo.number}번 버스 현재 위치</div>
+                {renderBusRouteImage()}
+                {busInfo.image && <img src={busInfo.image} alt="버스" className="bus-image" />}
+                <div className="arrival-time">{busInfo.arrivalTime}</div>
+              </div>
+            ) : (
+              <div className="bus-info">
                 <div className="no-bus-info">정보가 없습니다</div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </>
-      )}
-    </div>
+      </>
+    )}
+  </div>
   );
 }
 
