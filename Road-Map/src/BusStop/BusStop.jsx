@@ -60,6 +60,11 @@ function BusStop() {
 
   const [displayedText, setDisplayedText] = useState("");
 
+  const CURRENT_LOCATION = {
+    lng: 127.29453611111111,
+    lat: 34.620875
+  };
+
   const updateTime = () => {
     const now = new Date();
     const hours = now.getHours();
@@ -132,6 +137,7 @@ function BusStop() {
           console.log('음성 인식 시작...');
           setRealtimeText("");
           setIsRecording(true);
+          isRecordingRef.current = true;
           setUserQuestion("");
         };
 
@@ -157,11 +163,13 @@ function BusStop() {
         recognizer.onerror = (event) => {
           console.error('음성 인식 오류:', event.error);
           setIsRecording(false);
+          isRecordingRef.current = false;
         };
 
         recognizer.onend = () => {
           console.log('음성 인식 종료');
           setIsRecording(false);
+          isRecordingRef.current = false;
         };
 
         setRecognition(recognizer);
@@ -174,10 +182,10 @@ function BusStop() {
     if (isMuted) return;
 
     try {
-      if (recognition && isRecording) {
-        recognition.stop();  // TTS 시작 전 음성 인식 중지
+      if (recognition && isRecordingRef.current) {
+        stopRecording();  // TTS 시작 전 음성 인식 확실히 중지
       }
-      setIsSpeaking(true);  // TTS 시작
+      setIsSpeaking(true);
 
       const response = await openai.audio.speech.create({
         model: 'gpt-4o-mini-tts',
@@ -207,17 +215,19 @@ function BusStop() {
       audio.onended = () => {
         URL.revokeObjectURL(audioUrl);
         audioRef.current = null;
-        setIsSpeaking(false);  // TTS 종료
+        setIsSpeaking(false);
+        // TTS 종료 후 약간의 지연을 두고 음성 인식 재시작
         if (!isMuted) {
-          startRecording();  // TTS 종료 후 음성 인식 재시작
+          setTimeout(() => {
+            if (!isRecordingRef.current) {
+              startRecording();
+            }
+          }, 300);
         }
       };
     } catch (error) {
       console.error('OpenAI TTS 에러:', error);
       setIsSpeaking(false);
-      if (!isMuted) {
-        startRecording();
-      }
     }
   };
 
@@ -236,17 +246,30 @@ function BusStop() {
 
   // 음성 제어 함수 수정
   const startRecording = () => {
-    if (recognition && !isSpeaking) {  // TTS가 실행 중이 아닐 때만 음성 인식 시작
+    if (!recognition || isSpeaking || isRecordingRef.current) return;
+
+    try {
       setDisplayedText("");
       setIsRecording(true);
+      isRecordingRef.current = true;
       recognition.start();
+    } catch (error) {
+      console.error("Speech recognition error:", error);
+      // 오류 발생시 상태 초기화
+      setIsRecording(false);
+      isRecordingRef.current = false;
     }
   };
 
   const stopRecording = () => {
-    if (recognition) {
-      setIsRecording(false);
+    if (!recognition || !isRecordingRef.current) return;
+
+    try {
       recognition.stop();
+      setIsRecording(false);
+      isRecordingRef.current = false;
+    } catch (error) {
+      console.error("Speech recognition stop error:", error);
     }
   };
 
@@ -324,14 +347,17 @@ function BusStop() {
   // 응답 컴포넌트들 수정
   const LocationComponent = ({ data }) => (
     <div className="response-card location">
-      <p>{data.conversation_response}</p>
+      {/* <p>{data.conversation_response}</p> */}
       
       {data.coordinates && (
         <div className="map-container">
           <Map
-            coordinates={data.coordinates}
+            coordinates={[
+              [CURRENT_LOCATION.lng, CURRENT_LOCATION.lat],
+              ...data.coordinates
+            ]}
             type="location"
-            places={data.places}
+            places={["현재 위치", ...data.places]}
           />
         </div>
       )}
@@ -346,7 +372,7 @@ function BusStop() {
 
   const RouteComponent = ({ data }) => (
     <div className="response-card route">
-      <p>{data.conversation_response}</p>
+      {/* <p>{data.conversation_response}</p> */}
       
       {data.coordinates && (
         <div className="map-container">
@@ -382,7 +408,7 @@ function BusStop() {
           {data.arrival_times.map((bus, index) => (
             <tr key={index}>
               <td>{data.available_buses[index]}</td>
-              <td>{bus.expectedArrival}</td>
+              <td>{typeof bus === 'object' ? bus.expectedArrival : bus}분</td>
             </tr>
           ))}
         </tbody>
@@ -447,7 +473,26 @@ function BusStop() {
       });
   
       if (data.type === 'location') {
+        // 현재 위치 마커
+        const currentLocationMarker = new window.kakao.maps.Marker({
+          position: new window.kakao.maps.LatLng(CURRENT_LOCATION.lat, CURRENT_LOCATION.lng),
+          image: new window.kakao.maps.MarkerImage(
+            'https://www.pngall.com/wp-content/uploads/2017/05/Map-Marker-Free-Download-PNG.png',
+            new window.kakao.maps.Size(40, 40),
+            { offset: new window.kakao.maps.Point(20, 40) }
+          )
+        });
+        currentLocationMarker.setMap(map);
+
+        const currentInfowindow = new window.kakao.maps.InfoWindow({
+          content: '<div style="padding:5px; font-weight:bold;">현재 위치</div>'
+        });
+        currentInfowindow.open(map, currentLocationMarker);
+
+        // 목적지 마커들
         data.coordinates.forEach((coord, idx) => {
+          if (idx === 0 && coord[1] === CURRENT_LOCATION.lat && coord[0] === CURRENT_LOCATION.lng) return;
+          
           const marker = new window.kakao.maps.Marker({
             position: new window.kakao.maps.LatLng(coord[1], coord[0])
           });
@@ -483,6 +528,9 @@ function BusStop() {
       }
   
       const bounds = new window.kakao.maps.LatLngBounds();
+      if (data.type === 'location') {
+        bounds.extend(new window.kakao.maps.LatLng(CURRENT_LOCATION.lat, CURRENT_LOCATION.lng));
+      }
       data.coordinates.forEach(coord => {
         bounds.extend(new window.kakao.maps.LatLng(coord[1], coord[0]));
       });
@@ -503,6 +551,8 @@ function BusStop() {
   const startGreetingSequence = async () => {
     const greetingText = "안녕하세요, 오늘은 어디 가시나요?";
     
+
+
     setResponseType('notice');
     setResponseData({
       response: greetingText,
@@ -511,9 +561,12 @@ function BusStop() {
 
     try {
       await speakText(greetingText);
+
+            // 1초 지연
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       setTimeout(() => {
-        if (!isRecording) {
+        if (!isRecordingRef.current) {
           startRecording();
         }
       }, 500);
@@ -528,11 +581,12 @@ function BusStop() {
       audioRef.current = null;
     }
 
-    if (recognition && isRecording) {
+    if (recognition && isRecordingRef.current) {
       recognition.stop();
     }
 
     setIsRecording(false);
+    isRecordingRef.current = false;
     setRealtimeText("");
     setUserMessage("");
     setResponseType(null);
