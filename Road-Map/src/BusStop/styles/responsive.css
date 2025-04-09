@@ -1,0 +1,62 @@
+/* 반응형 디자인을 위한 미디어 쿼리 */
+@media screen and (max-width: 768px) {
+  .character-area {
+    margin-left: 0;
+  }
+  
+  .character-image {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .bubble-image {
+    width: 200px;
+  }
+  
+  .voice-button.mute {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .time, .dust, .temperature {
+    font-size: 18px;
+  }
+  
+  .response-container .initial-message,
+  .response-container .loading-message {
+    font-size: 1.5rem;
+  }
+  
+  .realtime-text-container {
+    width: 90%;
+    height: 80px;
+  }
+  
+  .realtime-text {
+    font-size: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .voice-control {
+    flex-direction: column;
+  }
+  
+  .sound-wave {
+    width: 100%;
+    height: 60px;
+  }
+  
+  .voice-button.toggle-record {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .response-card.notice p.greeting-text {
+    font-size: 24px;
+  }
+  
+  .response-card.notice p:not(.greeting-text) {
+    font-size: 18px;
+  }
+}
