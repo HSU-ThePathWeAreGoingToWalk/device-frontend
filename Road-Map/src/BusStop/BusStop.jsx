@@ -13,6 +13,9 @@ import Map from '../Map/Map.tsx';  // Update this line
 import { v4 as uuidv4 } from "uuid";
 import ciscoLogo from "./cisco_logo.png";
 
+// 백엔드 서버 URL 설정 - 환경에 맞게 변경해주세요
+const BACKEND_URL = "http://localhost:8000";
+
 function BusStop() {
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
@@ -54,6 +57,9 @@ function BusStop() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [displayedText, setDisplayedText] = useState("");
+
+  // 세션 ID 추가
+  const [sessionId, setSessionId] = useState(() => uuidv4());
 
   const updateTime = () => {
     const now = new Date();
@@ -263,6 +269,72 @@ function BusStop() {
     }
   };
 
+  // 세션 초기화 함수
+  const resetSession = () => {
+    console.log("세션 초기화 실행");
+    // 새 세션 ID 생성
+    const newSessionId = uuidv4();
+    setSessionId(newSessionId);
+    
+    // 대화 관련 상태 초기화
+    setUserMessage("");
+    setUserQuestion("");
+    setResponseType(null);
+    setResponseData(null);
+    setIsLoading(false);
+    setIsRecording(false);
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch (err) {
+        console.error("음성 인식 중지 중 오류:", err);
+      }
+    }
+    
+    // 지도 관련 상태 초기화
+    setShowMap(false);
+    setMapData(null);
+    
+    console.log("세션이 초기화되었습니다. 새 세션 ID:", newSessionId);
+  };
+
+  // 세션 리셋 API 엔드포인트를 생성하여 백엔드에서 직접 호출할 수 있게 함
+  useEffect(() => {
+    // API 서버 설정
+    const setupResetEndpoint = async () => {
+      try {
+        // 리셋 이벤트를 수신하는 엔드포인트 설정
+        if (window.EventSource) {
+          const eventSource = new EventSource(`${BACKEND_URL}/sessionEvents`);
+          
+          eventSource.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.event === 'reset') {
+                resetSession();
+              }
+            } catch (error) {
+              console.error('이벤트 데이터 파싱 오류:', error);
+            }
+          };
+
+          eventSource.onerror = (error) => {
+            console.error('EventSource 에러:', error);
+            eventSource.close();
+            // 연결이 끊어지면 3초 후에 재연결 시도
+            setTimeout(setupResetEndpoint, 3000);
+          };
+        } else {
+          console.warn('EventSource가 지원되지 않는 브라우저입니다. 폴백 방식으로 처리합니다.');
+        }
+      } catch (error) {
+        console.error("세션 이벤트 설정 중 오류:", error);
+      }
+    };
+
+    setupResetEndpoint();
+  }, []);
+
   // 응답 유형 추론 및 처리를 위한 수정된 sendMessageToAPI 함수
   const sendMessageToAPI = async (message) => {
     setIsLoading(true);
@@ -270,7 +342,8 @@ function BusStop() {
   
     try {
       const response = await axios.post("http://localhost:8000/chat", {
-        message: message
+        message: message,
+        session_id: sessionId // 세션 ID 포함
       });
   
       const data = response.data;
