@@ -23,7 +23,8 @@ const openai = new OpenAI({
 function BusStop() {
   const audioRef = useRef(null);
   const [isSpeaking, setIsSpeaking] = useState(false);  // 새로운 상태 추가
-  
+
+
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
   const [weatherData, setWeatherData] = useState({ dust: "", temperature: "" });
@@ -102,20 +103,20 @@ function BusStop() {
     return () => clearInterval(busInterval);
   }, []);
 
-  useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        const response = await fetch("https://api.example.com/weather");
-        const data = await response.json();
-        setWeatherData({ dust: data.dust, temperature: data.temperature });
-      } catch (error) {
-        console.error("🌤️ Weather data fetch error: ", error);
-        setWeatherData({ dust: "좋음", temperature: "17" });
-      }
-    };
+  // useEffect(() => {
+  //   const fetchWeatherData = async () => {
+  //     try {
+  //       const response = await fetch("https://api.example.com/weather");
+  //       const data = await response.json();
+  //       setWeatherData({ dust: data.dust, temperature: data.temperature });
+  //     } catch (error) {
+  //       console.error("🌤️ Weather data fetch error: ", error);
+  //       setWeatherData({ dust: "좋음", temperature: "17" });
+  //     }
+  //   };
 
-    fetchWeatherData();
-  }, []);
+  //   fetchWeatherData();
+  // }, []);
 
   // 음성 인식 초기화 부분 수정
   useEffect(() => {
