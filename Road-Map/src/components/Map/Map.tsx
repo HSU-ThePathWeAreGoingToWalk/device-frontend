@@ -27,7 +27,19 @@ const Map = ({ coordinates, type, places }: MapProps) => {
     if (type === 'location') {
       coordinates.forEach(([lng, lat], index) => {
         const position = new window.kakao.maps.LatLng(lat, lng);
-        const marker = new window.kakao.maps.Marker({ position });
+        
+        // 첫 번째 마커(현재 위치)는 깃발 이미지를 사용
+        const marker = index === 0 ? 
+          new window.kakao.maps.Marker({
+            position,
+            image: new window.kakao.maps.MarkerImage(
+              'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/flag.png',
+              new window.kakao.maps.Size(28, 30),
+              { offset: new window.kakao.maps.Point(12, 30) }
+            )
+          }) :
+          new window.kakao.maps.Marker({ position });
+
         marker.setMap(map);
 
         if (places?.[index]) {
@@ -58,11 +70,19 @@ const Map = ({ coordinates, type, places }: MapProps) => {
 
       const startMarker = new window.kakao.maps.Marker({
         position: linePath[0],
+        image: new window.kakao.maps.MarkerImage(
+          'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png',
+          new window.kakao.maps.Size(36, 46)
+        ),
       });
       startMarker.setMap(map);
 
       const endMarker = new window.kakao.maps.Marker({
         position: linePath[linePath.length - 1],
+        image: new window.kakao.maps.MarkerImage(
+          'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png',
+          new window.kakao.maps.Size(36, 46)
+        ),
       });
       endMarker.setMap(map);
 
