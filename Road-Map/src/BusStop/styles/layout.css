@@ -1,0 +1,198 @@
+@font-face {
+  font-family: 'CiscoSans';
+  src: url('./fonts/CiscoSansTTRegular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'CiscoSans';
+  src: url('./fonts/CiscoSansTTBold.ttf') format('truetype');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'CiscoSans';
+  src: url('./fonts/CiscoSansTTLight.ttf') format('truetype');
+  font-weight: 300;
+}
+
+
+/* 전체 컨테이너 */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    background-color: white;
+    font-family: 'Arial', sans-serif;
+}
+
+/* 상단 상태바 */
+.status-bar {
+    width: 100%;
+    padding: 1% 3%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 시간 표시 */
+.time {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 42px;
+    font-weight: 800;
+    color: #049FD9FF;
+    margin-top: 10px;
+    margin-right: auto; /* 시간을 왼쪽으로 밀착 */
+}
+
+.sun-icon, .moon-icon {
+  width: 45px;
+  height: 45px;
+  color: #049FD9FF;
+}
+
+/* 오른쪽 상단 미세먼지, 온도 정보 영역 */
+.weather-info {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    margin-left: auto; /* 날씨 정보를 오른쪽으로 밀착 */
+    margin-right: 6%;
+}
+
+.dust, .temperature {
+    margin-top: 6px;
+    font-size: 38px;
+    font-weight: 800;
+    color: #049FD9FF;
+}
+
+/* 캐릭터 영역 */
+.character-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 300px;
+    margin-top: 30px;
+}
+
+/* 캐릭터 이미지 크기 조정 */
+.character-image {
+  width: 300px;  /* 고정된 너비 */
+  height: 280px; /* 고정된 높이 */
+  object-fit: contain; /* 이미지 비율 유지하면서 컨테이너에 맞춤 */
+}
+
+.bubble-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bubble-image {
+  width: 300px;  /* 말풍선 크기 조절 */
+  height: 280px;
+}
+
+/* 응답 컨테이너 스타일 */
+.response-container {
+  margin: 20px auto;
+  padding: 20px;
+  min-width: 93%;
+  max-width: 93%;
+  background-color: #4ecfff;
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  height: 40%; 
+  min-height: 25%; 
+  overflow-y: auto; /* Enable vertical scrolling for long content */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align content to the top */
+  align-items: center; /* Center content horizontally */
+  box-sizing: border-box; /* Include padding in height calculation */
+}
+
+.response-container p {
+  color: #000000;
+  font-weight: normal;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.response-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.response-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.response-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.response-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 하단 정보 영역 */
+.info-area {
+  margin: 10px 30px;
+  padding: 15px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+}
+.realtime-text-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 83%;
+  height: 70px;
+  background-color: white;
+  border-bottom: 3px solid #049FD9FF;
+  margin: 0 auto;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+
+.realtime-text {
+  font-size: 30px;
+  font-weight: bold;
+  color: #049FD9FF;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 10px;
+}
+
+/* 텍스트 입력 컨테이너 스타일 */
+.text-input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cisco-logo {
+  height: 42px;
+  width: auto;
+  margin-top: 10px;
+  margin-right: 20px;
+}

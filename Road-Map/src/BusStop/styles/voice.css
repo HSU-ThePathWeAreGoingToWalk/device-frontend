@@ -1,0 +1,158 @@
+/* 음성 인식 관련 스타일 */
+.voice-control {
+  margin: 0 40px 40px;
+  padding: 15px;
+  background-color: white;
+  border-radius: 80px;
+  display: flex;
+  flex-direction: row; /* 수평 배치 */
+  align-items: center;
+  gap: 20px; /* 요소들 사이 간격 */
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+}
+
+.voice-buttons {
+  order: -1; /* 버튼을 맨 앞으로 이동 */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-left: 20px; /* 왼쪽 여백 추가 */
+}
+
+.sound-wave {
+  width: 80%;
+  height: 100px;
+  background-color: white;
+  border-radius: 50px;
+  
+}
+
+.voice-button.toggle-record {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin-bottom: 5px;
+  transition: all 0.3s ease;
+  background-color: #049FD9FF;
+  box-shadow: 0 0 15px rgba(4, 159, 217, 0.5); /* 기본 상태 - 파란색 그림자 */
+}
+
+.voice-button.toggle-record.recording {
+  background-color: #f44336;
+  box-shadow: 0 0 15px rgba(244, 67, 54, 0.5); /* 녹음 중 - 빨간색 그림자 */
+}
+
+.voice-button.toggle-record:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(4, 159, 217, 0.6); /* 호버 시 그림자 강화 */
+}
+
+.voice-button.toggle-record.recording:hover {
+  box-shadow: 0 0 20px rgba(244, 67, 54, 0.6); /* 녹음 중 호버 시 그림자 강화 */
+}
+
+.voice-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.voice-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #4CAF50;
+  color: white;
+}
+
+.voice-button.disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.voice-button.stop:not(.disabled) {
+  background-color: white;
+}
+
+.voice-button.mute {
+  position: absolute;
+  top: 56%;
+  left: 47%;
+  transform: translate(-30%, -90%);
+  background-color: white;  /* 변경: #757575 -> white */
+  width: 120px;
+  height: 120px;
+  border-radius: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+.voice-button.mute.active {
+  background-color: white;
+}
+
+.voice-button.mute:hover {
+  background-color: white;
+}
+
+.voice-button.mute.active:hover {
+  background-color: white;
+}
+
+.voice-button.refresh {
+  position: absolute;
+  top: 85px;
+  left: 20px;
+  width: 60px;  /* 크기 증가 */
+  height: 60px; /* 크기 증가 */
+  border-radius: 50%; /* 원형으로 변경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #049FD9FF; /* 메인 컬러로 통일 */
+  box-shadow: 0 0 15px rgba(4, 159, 217, 0.5); /* 그림자 추가 */
+  cursor: pointer;
+  padding: 0;
+  margin-top: 30px;
+  margin-left: 20px;
+}
+
+.voice-button.refresh:hover {
+  background-color: #049FD9FF;
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(4, 159, 217, 0.6);
+}
+
+.voice-button.refresh {
+  background-color: #2196F3;
+}
+
+.voice-button.refresh:hover {
+  background-color: #1976D2;
+}
+
+/* 녹음 중 메시지 */
+.message-content.recording {
+  background-color: #FF9800 !important;
+  animation: pulse 1.5s infinite;
+}
+
+.recording-indicator {
+  display: inline-block;
+  margin-left: 8px;
+  color: #ff0000;
+  animation: blink 1s infinite;
+}

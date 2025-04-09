@@ -9,23 +9,27 @@ import busImg from "./bus.png";
 import subwayImg from "./subway.png";
 import shipImg from "./ship.png";
 import walkingImg from "./walking.png";
-import Map from '../Map/Map.tsx';  // Update this line
+import Map from '../Map/Map.tsx';
 import { v4 as uuidv4 } from "uuid";
 import ciscoLogo from "./cisco_logo.png";
+import OpenAI from 'openai';
+
+
+const openai = new OpenAI({
+  apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true, // 브라우저에서 실행 허용
+});
 
 function BusStop() {
+  const audioRef = useRef(null);
+  
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
   const [weatherData, setWeatherData] = useState({ dust: "", temperature: "" });
-  // 상태 추가 (BusStop 컴포넌트 최상단)
   const [isEmergency, setIsEmergency] = useState(false);
   const [busInfo, setBusInfo] = useState({ 
-    
-    number: "", 
-    image: "", 
-    arrivalTime: "",
-    currentLocation: null,
-    stops: []
+    buses: [],
+    success: false
   });
   const [isRecording, setIsRecording] = useState(false);
   const [recognition, setRecognition] = useState(null);
@@ -38,7 +42,6 @@ function BusStop() {
     const savedMuteState = localStorage.getItem('isMuted');
     return savedMuteState ? JSON.parse(savedMuteState) : false;
   });
-  const audioRef = useRef(null);
 
   // Voice recognition states
   const isRecordingRef = useRef(isRecording);
@@ -72,23 +75,23 @@ function BusStop() {
   useEffect(() => {
     const fetchBusData = async () => {
       try {
-        const response = await axios.get("https://your-backend.com/api/fastest-bus");
-        const { number, image, arrivalTime, currentLocation, stops } = response.data;
-        setBusInfo({ 
-          number, 
-          image, 
-          arrivalTime,
-          currentLocation,
-          stops: stops || []
+        const response = await axios.get("http://localhost:9000/bus");
+        console.log("버스 데이터:", response.data);
+        
+        // 도착 시간 순으로 정렬하고 최대 3개만 선택
+        const sortedBuses = response.data
+          .sort((a, b) => a.arrival_minutes - b.arrival_minutes)
+          .slice(0, 3);
+
+        setBusInfo({
+          buses: sortedBuses,
+          success: true
         });
       } catch (error) {
-        console.error("🚍 Bus data fetch error: ", error);
-        setBusInfo({ 
-          number: "정보가 없습니다", 
-          image: "", 
-          arrivalTime: "정보가 없습니다",
-          currentLocation: null,
-          stops: []
+        console.error("🚍 Bus data fetch error:", error);
+        setBusInfo({
+          buses: [],
+          success: false
         });
       }
     };
@@ -130,23 +133,18 @@ function BusStop() {
           setUserQuestion("");
         };
 
-        // onresult 핸들러 수정
         recognizer.onresult = (event) => {
-          // 가장 최근의 인식 결과만 가져오기
           const lastResult = event.results[event.results.length - 1];
           const currentText = lastResult[0].transcript;
           
           console.log('인식된 텍스트:', currentText);
           setRealtimeText(currentText);
           
-          // 음성 인식이 완료되면 메시지 전송
           if (lastResult.isFinal) {
             setUserMessage(currentText);
             sendMessageToAPI(currentText);
-            // 메시지 전송 후 텍스트 초기화
             setRealtimeText("");
             
-            // 음성 인식 초기화
             if (recognition) {
               recognition.stop();
               recognition.start();
@@ -169,58 +167,32 @@ function BusStop() {
     }
   }, []);
 
-  // Text-to-Speech function
+  // Text-to-Speech 함수
   const speakText = async (text) => {
-    if (isMuted) return; // 음소거 상태면 실행하지 않음
-    
-    const apiKey = process.env.REACT_APP_GOOGLE_TTS_API_KEY;
-    
-    if (!apiKey) {
-      console.error('Google TTS API 키가 설정되지 않았습니다.');
-      return;
-    }
-
-    const API_URL = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
-    const requestBody = {
-      input: { text },
-      voice: {
-        languageCode: 'ko-KR',
-        name: 'ko-KR-Standard-A',
-      },
-      audioConfig: {
-        audioEncoding: 'MP3',
-        speakingRate: 1.0,
-        pitch: 0,
-      },
-    };
+    if (isMuted) return;
 
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
+      const response = await openai.audio.speech.create({
+        model: 'gpt-4o-mini-tts',
+        voice: 'sage', // 새로운 음성 'sage' 사용
+        input: text,
+        instructions: `
+          Voice: Warm, empathetic, and professional, reassuring the customer that their issue is understood and will be resolved.
+          Punctuation: Well-structured with natural pauses, allowing for clarity and a steady, calming flow.
+          Delivery: Calm and patient, with a supportive and understanding tone that reassures the listener.
+          Phrasing: Clear and concise, using customer-friendly language that avoids jargon while maintaining professionalism.
+          Tone: Empathetic and solution-focused, emphasizing both understanding and proactive assistance.
+        `,
       });
 
-      if (!response.ok) throw new Error(`API 요청 실패: ${response.status}`);
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
 
-      const data = await response.json();
-      if (!data.audioContent) throw new Error('오디오 콘텐츠가 없습니다.');
-
-      const audioContent = data.audioContent;
-      const binaryString = atob(audioContent);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const blob = new Blob([bytes], { type: 'audio/mp3' });
-      const audioUrl = URL.createObjectURL(blob);
-      
-      // 기존 오디오 중지 및 새 오디오 생성
       if (audioRef.current) {
         audioRef.current.pause();
         URL.revokeObjectURL(audioRef.current.src);
       }
-      
+
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
       await audio.play();
@@ -230,7 +202,7 @@ function BusStop() {
         audioRef.current = null;
       };
     } catch (error) {
-      console.error('TTS 에러:', error);
+      console.error('OpenAI TTS 에러:', error);
     }
   };
 
@@ -250,7 +222,7 @@ function BusStop() {
   // 음성 제어 함수
   const startRecording = () => {
     if (recognition) {
-      setDisplayedText(""); // Clear displayed text when recording starts
+      setDisplayedText("");
       setIsRecording(true);
       recognition.start();
     }
@@ -269,16 +241,15 @@ function BusStop() {
     setUserQuestion(message);
   
     try {
-      const response = await axios.post("http://localhost:8000/chat", {
+      const response = await axios.post("http://localhost:9000/chat", {
         message: message
       });
   
       const data = response.data;
       console.log("Server Response:", data);
   
-      let responseText = ''; // TTS에 사용될 텍스트를 저장할 변수
+      let responseText = '';
   
-      // 응답 유형 추론 및 데이터 처리
       if (data.places && data.coordinates) {
         setResponseType('location');
         setResponseData({
@@ -316,7 +287,6 @@ function BusStop() {
         responseText = data.response || data.conversation_response;
       }
       
-      // 음소거 상태 확인 후 TTS 실행
       if (!isMuted && responseText) {
         await speakText(responseText);
       }
@@ -339,10 +309,8 @@ function BusStop() {
   // 응답 컴포넌트들 수정
   const LocationComponent = ({ data }) => (
     <div className="response-card location">
-      {/* <h3>📍 위치 찾기</h3> */}
       <p>{data.conversation_response}</p>
       
-      {/* 지도를 바로 표시 */}
       {data.coordinates && (
         <div className="map-container">
           <Map
@@ -363,10 +331,8 @@ function BusStop() {
 
   const RouteComponent = ({ data }) => (
     <div className="response-card route">
-      {/* <h3>🗺 길찾기</h3> */}
       <p>{data.conversation_response}</p>
       
-      {/* 지도를 경로 설명 앞에 표시 */}
       {data.coordinates && (
         <div className="map-container">
           <Map
@@ -389,7 +355,6 @@ function BusStop() {
   
   const BusComponent = ({ data }) => (
     <div className="response-card bus">
-      {/* <h3>🚌 버스 정보</h3> */}
       <p>{data.conversation_response}</p>
       <table>
         <thead>
@@ -467,7 +432,6 @@ function BusStop() {
       });
   
       if (data.type === 'location') {
-        // 위치 마커 표시
         data.coordinates.forEach((coord, idx) => {
           const marker = new window.kakao.maps.Marker({
             position: new window.kakao.maps.LatLng(coord[1], coord[0])
@@ -482,7 +446,6 @@ function BusStop() {
           }
         });
       } else if (data.type === 'route') {
-        // 경로 그리기
         const path = data.coordinates.map(coord => 
           new window.kakao.maps.LatLng(coord[1], coord[0])
         );
@@ -494,7 +457,6 @@ function BusStop() {
         });
         polyline.setMap(map);
   
-        // 시작점과 도착점 마커
         const startMarker = new window.kakao.maps.Marker({
           position: path[0]
         });
@@ -505,7 +467,6 @@ function BusStop() {
         endMarker.setMap(map);
       }
   
-      // 모든 좌표가 보이도록 지도 범위 조정
       const bounds = new window.kakao.maps.LatLngBounds();
       data.coordinates.forEach(coord => {
         bounds.extend(new window.kakao.maps.LatLng(coord[1], coord[0]));
@@ -517,74 +478,62 @@ function BusStop() {
   };
 
   const refreshPage = () => {
-    setIsRefreshing(true); // Trigger animation
+    setIsRefreshing(true);
     setTimeout(() => {
-      setIsRefreshing(false); // Reset animation after 1 second
-      window.location.reload(); // Reload the page
+      setIsRefreshing(false);
+      window.location.reload();
     }, 1000);
   };
 
-  // BusStop 컴포넌트 내에 새로운 함수 추가
-const startGreetingSequence = async () => {
-  const greetingText = "안녕하세요, 오늘은 어디 가시나요?";
-  
-  // 응답 데이터 설정
-  setResponseType('notice');
-  setResponseData({
-    response: greetingText,
-    success: true
-  });
-
-  try {
-    // TTS 실행
-    await speakText(greetingText);
+  const startGreetingSequence = async () => {
+    const greetingText = "안녕하세요, 오늘은 어디 가시나요?";
     
-    // TTS 완료 후 자동으로 음성 인식 시작
+    setResponseType('notice');
+    setResponseData({
+      response: greetingText,
+      success: true
+    });
+
+    try {
+      await speakText(greetingText);
+      
+      setTimeout(() => {
+        if (!isRecording) {
+          startRecording();
+        }
+      }, 500);
+    } catch (error) {
+      console.error("Greeting sequence error:", error);
+    }
+  };
+
+  const handleEmergency = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    if (recognition && isRecording) {
+      recognition.stop();
+    }
+
+    setIsRecording(false);
+    setRealtimeText("");
+    setUserMessage("");
+    setResponseType(null);
+    setResponseData(null);
+    setIsLoading(false);
+
+    setIsRefreshing(true);
     setTimeout(() => {
-      if (!isRecording) {
-        startRecording();
-      }
-    }, 500);
-  } catch (error) {
-    console.error("Greeting sequence error:", error);
-  }
-};
+      setIsRefreshing(false);
+      setIsEmergency(true);
+    }, 1000);
+  };
 
-// 비상 상황 처리 함수 추가
-const handleEmergency = () => {
-  // 진행 중인 음성 출력 중지
-  if (audioRef.current) {
-    audioRef.current.pause();
-    audioRef.current = null;
-  }
-
-  // 음성 인식 중지
-  if (recognition && isRecording) {
-    recognition.stop();
-  }
-
-  // 모든 상태 초기화
-  setIsRecording(false);
-  setRealtimeText("");
-  setUserMessage("");
-  setResponseType(null);
-  setResponseData(null);
-  setIsLoading(false);
-
-  // 화면 새로고침 효과 및 비상 모달 표시
-  setIsRefreshing(true);
-  setTimeout(() => {
-    setIsRefreshing(false);
-    setIsEmergency(true);
-  }, 1000);
-};
-
-// 모달 닫기 함수 추가
-const handleCloseEmergency = () => {
-  setIsEmergency(false);
-};
-
-// return 문 안의 마지막 부분 (text-input-container 위에 추가)
+  const handleCloseEmergency = () => {
+    setIsEmergency(false);
+  };
 
   return (
     <div className="app-container">
@@ -596,7 +545,7 @@ const handleCloseEmergency = () => {
         />
         <div className="time">
           {isDay ? (
-            <svg className="sun-icon" xmlns="http://www.w3.org/2000/svg" width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="sun-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="5"></circle>
               <line x1="12" y1="1" x2="12" y2="3"></line>
               <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -636,7 +585,6 @@ const handleCloseEmergency = () => {
             <path d="M3 21v-5h5" />
           </svg>
         </button>
-        {/* 오른쪽 상단 미세먼지, 온도 정보 추가, 현재는 더미데이터 Room Bar 연동 시 실제 데이터 받아올 예정 */}
         <div className="weather-info">
           <div className="dust">대기질: {weatherData.dust}</div>
           <div className="temperature">온도: {weatherData.temperature}°C</div>
@@ -679,8 +627,8 @@ const handleCloseEmergency = () => {
             ) : (
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                width="50"
-                height="50"
+                width="40"
+                height="40"
                 viewBox="0 0 24 24" 
                 fill="none" 
                 stroke="#049FD9FF"
@@ -697,7 +645,6 @@ const handleCloseEmergency = () => {
         </div>
       </div>
       
-      {/* 음성 인식 UI */}
       <div className="voice-control">
         <ReactMic
           record={isRecording}
@@ -707,46 +654,45 @@ const handleCloseEmergency = () => {
           backgroundColor="#ffffff"
         />
         <div className="voice-buttons">
-        <button
-          onClick={isRecording ? stopRecording : startRecording}
-          className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
-        >
-          {isRecording ? (
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="40" 
-              height="40" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="white"
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <rect x="6" y="4" width="12" height="16" rx="2" ry="2" />
-            </svg>
-          ) : (
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="40" 
-              height="40" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="white"
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="22" />
-            </svg>
-          )}
-        </button>
+          <button
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
+          >
+            {isRecording ? (
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="40" 
+                height="40" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="white"
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <rect x="6" y="4" width="12" height="16" rx="2" ry="2" />
+              </svg>
+            ) : (
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="40" 
+                height="40" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="white"
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Fixed area for real-time or final text */}
       <div className="realtime-text-container">
         <div className="realtime-text">
           {realtimeText || userMessage}
@@ -754,33 +700,30 @@ const handleCloseEmergency = () => {
         </div>
       </div>
 
-      {/* 실시간 음성 인식 텍스트 */}
-      {/* {isRecording && realtimeText && (
-        <div className="realtime-text">
-          {realtimeText}
-          <span className="recording-indicator">●</span>
-        </div>
-      )} */}
-
-      {/* 응답 표시 영역 */}
       {renderResponse()}
 
-      {/* 버스 정보 영역 */}
       <div className="info-area">
         <div className="bus-info">
-          {busInfo.number !== "정보가 없습니다" ? (
-            <>
-              <div className="bus-number">{busInfo.number}번 버스</div>
-              {busInfo.image && <img src={busInfo.image} alt="버스" className="bus-image" />}
-              <div className="arrival-time">도착 예정: {busInfo.arrivalTime}</div>
-            </>
+          {busInfo.success && busInfo.buses.length > 0 ? (
+            <div className="bus-list">
+              {busInfo.buses.map((bus, index) => (
+                <div key={index} className="bus-item">
+                  <div className="bus-number">{bus.bus_number}번</div>
+                  <div className="arrival-time">
+                    {bus.arrival_minutes}분 후 도착
+                  </div>
+                  <div className="prev-count">
+                    {bus.prev_count}정거장 전
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="no-bus-info">버스 정보가 없습니다</div>
           )}
         </div>
       </div>
 
-      {/* 지도 오버레이 */}
       {showMap && mapData && (
         <div className="map-overlay">
           <Map
@@ -794,58 +737,57 @@ const handleCloseEmergency = () => {
         </div>
       )}
 
-        {/* 인사 시작하기 버튼 있는 부분 수정 */}
-        <div style={{   
-          position: 'fixed', 
-          bottom: '80px', 
-          left: '50%', 
-          transform: 'translateX(-50%)',
-          zIndex: 1000,
-          display: 'flex',
-          gap: '20px'
-        }}>
-          <button
-            onClick={startGreetingSequence}
-            className="test-button"
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#049FD9FF',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '16px'
-            }}
-          >
-            인사 시작하기
-          </button>
-          <button
-            onClick={handleEmergency}
-            className="emergency-button"
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#ff0000',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '16px'
-            }}
-          >
-            비상 상황
-          </button>
-        </div>
 
-        {/* 비상 상황 모달 */}
-        {isEmergency && (
-          <div className="emergency-overlay" onClick={handleCloseEmergency}>
-            <div className="emergency-modal" onClick={e => e.stopPropagation()}>
-              <h2>비상 버튼이 눌렸습니다!</h2>
-              <h2>관리자와 연락 시도중이니 잠시만 기다려 주십시오</h2>
-            </div>
+      <div style={{   
+        position: 'fixed', 
+        bottom: '80px', 
+        left: '50%', 
+        transform: 'translateX(-50%)',
+        zIndex: 1000,
+        display: 'flex',
+        gap: '20px'
+      }}>
+        <button
+          onClick={startGreetingSequence}
+          className="test-button"
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#049FD9FF',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          인사 시작하기
+        </button>
+        <button
+          onClick={handleEmergency}
+          className="emergency-button"
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#ff0000',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          비상 상황
+        </button>
+      </div>
+
+      {isEmergency && (
+        <div className="emergency-overlay" onClick={handleCloseEmergency}>
+          <div className="emergency-modal" onClick={e => e.stopPropagation()}>
+            <h2>비상 버튼이 눌렸습니다!</h2>
+            <h2>관리자와 연락 시도중이니 잠시만 기다려 주십시오</h2>
           </div>
-        )}
-      {/* 텍스트 입력 UI */}
+        </div>
+      )}
+
       <div className="text-input-container">
         <input
           type="text"
@@ -873,6 +815,9 @@ const handleCloseEmergency = () => {
           전송
         </button>
       </div>
+
+
+
     </div>
   );
 }
