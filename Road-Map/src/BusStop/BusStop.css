@@ -1,7 +1,1313 @@
-@import './styles/layout.css';
-@import './styles/components.css';
-@import './styles/voice.css';
-@import './styles/chat.css';
-@import './styles/map.css';
-@import './styles/animations.css';
-@import './styles/responsive.css';
+/* 전체 컨테이너 */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: white;
+    font-family: 'Arial', sans-serif;
+}
+
+/* 상단 상태바 */
+.status-bar {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative; /* Ensure proper positioning for child elements */
+}
+
+/* 시간 표시 */
+.time {
+    display: flex;
+    align-items: center;
+    font-size: 25px;
+    font-weight: 800;
+    gap: 15px;
+    color: #049FD9FF;
+}
+
+.sun-icon, .moon-icon {
+    width: 30px;
+    height: 30px;
+    color: #049FD9FF;
+}
+
+/* 오른쪽 상단 미세먼지, 온도 정보 영역 */
+.weather-info {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end; /* 오른쪽 정렬 */
+    margin-right: 3%;
+}
+
+.dust, .temperature {
+    margin-top: 10px;
+    font-size: 25px;
+    font-weight: 800;
+    color: #049FD9FF;
+}
+
+/* 경로 애니메이션 관련 스타일 */
+.transport-animation {
+    position: absolute;
+    z-index: 5;
+    transform: translate(-50%, -50%);
+}
+
+.transport-icon {
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
+    width: 60px;
+    height: 60px;
+}
+
+  /* 경로 표시 라인 */
+.route-paths {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+  /* 경로 마커 스타일 */
+.route-marker {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid white;
+    z-index: 2;
+}
+
+.start-marker {
+    width: 16px;
+    height: 16px;
+    background-color: #4CAF50;
+}
+
+.end-marker {
+    width: 20px;
+    height: 20px;
+    background-color: #F44336;
+}
+
+/* 단계별 안내 스타일 */
+.directions-steps {
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 28px;
+}
+
+.direction-step {
+    padding: 15px 10px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+    background-color: #f0f8ff;
+    border-radius: 8px;
+}
+
+.active-step {
+    color: #FF5722;
+    font-weight: bold;
+    background-color: #FFF3E0;
+    border-left: 5px solid #FF5722;
+}
+
+  /* 돌아가기 버튼 */
+.back-button {
+    width: 100%;
+    padding: 20px;
+    background-color: #2196F3;
+    color: white;
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 0 0 16px 16px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background-color: #1976D2;
+}
+
+  /* 교통수단별 스타일 */
+.transport-bus {
+    filter: drop-shadow(0 0 5px rgba(33, 150, 243, 0.5));
+}
+
+.transport-subway {
+    filter: drop-shadow(0 0 5px rgba(76, 175, 80, 0.5));
+}
+
+.transport-ship {
+    filter: drop-shadow(0 0 5px rgba(156, 39, 176, 0.5));
+}
+
+.transport-walking {
+    filter: drop-shadow(0 0 5px rgba(255, 152, 0, 0.5));
+}
+
+  /* 애니메이션 깜빡임 효과 */
+@keyframes icon-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.transport-icon {
+    animation: icon-blink 1.5s infinite;
+}
+
+/* 캐릭터 영역 */
+.character-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 300px;
+}
+
+/* 캐릭터 이미지 크기 조정 */
+.character-image {
+  width: 300px;  /* 고정된 너비 */
+  height: 300px; /* 고정된 높이 */
+  object-fit: contain; /* 이미지 비율 유지하면서 컨테이너에 맞춤 */
+}
+
+/* 메시지 상자 */
+.message-box {
+  margin: 20px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5); /* 배경 어둡게 수정 */
+  border-radius: 16px;
+  height: 60vh; /* 높이를 더 크게 설정 */
+  min-height: 400px; /* 최소 높이 설정 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 컨테이너 자체의 오버플로우는 숨김 */
+}
+
+/* 메시지 텍스트 */
+.message-text {
+    font-size: 60px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 150%;
+}
+
+/* 사용자 메시지 (하늘색) */
+.user-message {
+    background-color: #e6f0fa;
+    padding: 30px;
+    border-radius: 10px;
+    align-self: flex-end;
+    font-size: 28px;
+    max-width: 65%; 
+    margin-bottom: 20px;
+    color: #4CAF50;
+}
+
+/* 봇 메시지 (회색) */
+.bot-message {
+    background-color: #f0f0f0;
+    padding: 30px;
+    border-radius: 10px;
+    align-self: flex-start;
+    font-size: 28px;
+    max-width: 65%; 
+    color: white;
+}
+
+/* 하단 정보 영역 */
+.info-area {
+  margin: 20px;
+  padding: 15px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bus-info {
+  color: white;
+  text-align: center;
+}
+
+.bus-number {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.bus-image {
+  max-width: 100px;
+  margin: 10px 0;
+}
+
+.arrival-time {
+  font-size: 16px;
+}
+
+.no-bus-info {
+  color: #999;
+  font-style: italic;
+}
+
+.no-route-info {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: #999;
+}
+
+/* 버스 노선도 스타일 */
+.bus-route {
+    position: relative;
+    height: 100px;
+    margin: 30px 0;
+    padding: 0 20px;
+}
+
+.route-line {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background-color: #ddd;
+}
+
+.bus-stop {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateX(-50%);
+}
+
+.stop-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #ccc;
+    margin-bottom: 10px;
+}
+
+.stop-name {
+    font-size: 18px;
+    text-align: center;
+}
+
+.current-location .stop-name {
+    font-weight: bold;
+    color: #0066cc;
+}
+
+.current-location-circle {
+    background-color: #0066cc;
+}
+
+.blink {
+    animation: blink-animation 1s infinite;
+}
+
+@keyframes blink-animation {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+.no-bus-info {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+/* 지도 및 방향 정보 스타일 */
+.map-directions-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.map-background {
+    flex: 1;
+    background-color: #f5f5f5;
+    border-radius: 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.directions-overlay {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.directions-overlay h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.directions-overlay p {
+    font-size: 28px;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f0f8ff;
+    border-radius: 8px;
+}
+
+/* 음성 인식 관련 스타일 */
+.voice-control {
+  margin: 20px;
+  padding: 15px;
+  background-color: white;
+  border-radius: 100px;
+  display: flex;
+  flex-direction: row; /* 수평 배치 */
+  align-items: center;
+  gap: 20px; /* 요소들 사이 간격 */
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+}
+
+.voice-buttons {
+  order: -1; /* 버튼을 맨 앞으로 이동 */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-left: 20px; /* 왼쪽 여백 추가 */
+}
+
+.sound-wave {
+  width: 80%;
+  height: 100px;
+  background-color: white;
+  border-radius: 50px;
+  
+}
+
+.voice-button.toggle-record {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin-bottom: 5px;
+  transition: all 0.3s ease;
+  background-color: #049FD9FF;
+  box-shadow: 0 0 15px rgba(4, 159, 217, 0.5); /* 기본 상태 - 파란색 그림자 */
+}
+
+.voice-button.toggle-record.recording {
+  background-color: #f44336;
+  box-shadow: 0 0 15px rgba(244, 67, 54, 0.5); /* 녹음 중 - 빨간색 그림자 */
+}
+
+.voice-button.toggle-record:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(4, 159, 217, 0.6); /* 호버 시 그림자 강화 */
+}
+
+.voice-button.toggle-record.recording:hover {
+  box-shadow: 0 0 20px rgba(244, 67, 54, 0.6); /* 녹음 중 호버 시 그림자 강화 */
+}
+
+.voice-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.voice-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #4CAF50;
+  color: white;
+}
+
+.voice-button.disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.voice-button.stop:not(.disabled) {
+  background-color: white;
+}
+
+.voice-button.mute {
+  position: absolute;
+  top: 54%;
+  left: 47%;
+  transform: translate(-30%, -90%);
+  background-color: white;  /* 변경: #757575 -> white */
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+.voice-button.mute.active {
+  background-color: white;  /* 이미 white로 되어있음 */
+}
+
+.voice-button.mute:hover {
+  background-color: white;  /* hover 시 약간 어두운 흰색 */
+}
+
+/* .voice-button.mute::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 12px;
+  border: 2px solid white;
+  border-radius: 2px;
+  transform: rotate(0deg);
+}
+
+.voice-button.mute::after {
+  content: '';
+  position: absolute;
+  width: 50px;
+  height: 2px;
+  background-color: white;
+  transform: rotate(45deg);
+} */
+
+.voice-button.mute.active {
+  background-color: white;  /* 변경: #ff5722 -> white */
+}
+
+.voice-button.mute:hover {
+  background-color: white;  /* 밝은 회색으로 hover 효과 수정 */
+}
+
+.voice-button.mute.active:hover {
+  background-color: white;  /* 변경: #f4511e -> #f5f5f5 */
+}
+
+.voice-button.refresh {
+  position: absolute;
+  top: 50px;
+  left: 10px;
+  width: 60px;  /* 크기 증가 */
+  height: 60px; /* 크기 증가 */
+  border-radius: 50%; /* 원형으로 변경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #049FD9FF; /* 메인 컬러로 통일 */
+  box-shadow: 0 0 15px rgba(4, 159, 217, 0.5); /* 그림자 추가 */
+  cursor: pointer;
+  padding: 0;
+  margin-top: 30px;
+  margin-left: 20px;
+}
+
+.voice-button.refresh:hover {
+  background-color: #049FD9FF;
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(4, 159, 217, 0.6);
+}
+
+.voice-button.refresh {
+  background-color: #2196F3;
+}
+
+.voice-button.refresh:hover {
+  background-color: #1976D2;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: ease-in;
+  }
+  50% {
+    transform: rotate(180deg);
+    animation-timing-function: linear;
+  }
+  100% {
+    transform: rotate(360deg);
+    animation-timing-function: ease-out;
+  }
+}
+
+.voice-button.refresh.rotating {
+  animation: rotate 1s;
+}
+
+/* 채팅 히스토리 스타일 */
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 10px; /* 스크롤바 여백 */
+}
+
+.chat-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-history::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 새로운 메시지가 추가될 때 자동 스크롤을 위한 스타일 */
+.chat-history {
+  scroll-behavior: smooth;
+}
+
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.chat-message {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.chat-message.user {
+  justify-content: flex-end;
+}
+
+.chat-message .message-content {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 16px;
+  line-height: 1.4;
+  white-space: pre-wrap; /* 줄바꿈 보존 */
+  word-break: break-word; /* 긴 단어 줄바꿈 */
+  overflow: visible; /* 스크롤 제거 */
+}
+
+.chat-message.bot .message-content {
+  background-color: #2C3E50; /* 진한 파란색 배경 */
+  color: #FFFFFF; /* 흰색 텍스트 */
+  border-radius: 0 16px 16px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-message.user .message-content {
+  background-color: #4CAF50;
+  color: #FFFFFF;
+  border-radius: 16px 0 16px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-content.loading {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.show-route-btn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: #FF9800;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.bus-info-preview {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* 채팅 컨테이너 스타일 */
+.message-box {
+  margin: 20px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  height: 60vh; /* 채팅창 높이 고정 */
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 컨테이너 자체의 오버플로우는 숨김 */
+}
+
+/* 채팅 히스토리 영역 */
+.chat-history {
+  flex: 1;
+  overflow-y: auto; /* 세로 스크롤만 적용 */
+  overflow-x: hidden; /* 가로 스크롤 숨김 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 10px;
+}
+
+/* 스크롤바 스타일 */
+.chat-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-history::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.chat-history::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 메시지 컨테이너 */
+.chat-message {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 12px;
+  /* min-height 제거 - 말풍선이 자유롭게 늘어나도록 */
+}
+
+.chat-message.user {
+  justify-content: flex-end;
+}
+
+/* 메시지 내용 */
+.message-content {
+  padding: 12px 16px;
+  border-radius: 16px;
+  max-width: 70%;
+  word-break: break-word;
+  color: #FFFFFF;
+  white-space: pre-wrap;
+  height: fit-content; /* 내용에 맞게 높이 자동 조정 */
+  font-size: 16px;
+  line-height: 1.5;
+  overflow: visible; /* 내용이 넘치지 않도록 */
+}
+
+/* 봇 메시지 */
+.chat-message.bot .message-content {
+  background-color: #2C3E50;
+  margin-right: auto;
+  border-radius: 0 16px 16px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 사용자 메시지 */
+.chat-message.user .message-content {
+  background-color: #4CAF50;
+  margin-left: auto;
+  border-radius: 16px 0 16px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 녹음 중 메시지 */
+.message-content.recording {
+  background-color: #FF9800 !important;
+  animation: pulse 1.5s infinite;
+}
+
+.recording-indicator {
+  display: inline-block;
+  margin-left: 8px;
+  color: #ff0000;
+  animation: blink 1s infinite;
+}
+
+/* 로딩 메시지 */
+.message-content.loading {
+  background-color: rgba(255, 255, 255, 0.1);
+  font-style: italic;
+}
+
+/* 지도 버튼 */
+.show-map-btn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: #FF9800;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* 버스 정보 미리보기 */
+.bus-info-preview {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(0, 123, 255, 0.2);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+@keyframes blink {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.voice-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.voice-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #4CAF50;
+  color: white;
+}
+
+.voice-button.stop {
+  background-color: #f44336;
+}
+
+.voice-button.disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.map-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 800px;
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.close-map-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 8px 16px;
+  background-color: #FF5722;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.close-map-btn:hover {
+  background-color: #F4511E;
+}
+
+/* 응답 컨테이너 스타일 */
+.response-container {
+  margin: 20px auto;
+  padding: 20px;
+  min-width: 95%;
+  max-width: 95%;
+  background-color: rgba(0, 0, 0, 0.0);
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  height: 50%; /* Fixed height for the response area */
+  min-height: 50%; /* Minimum height to ensure visibility */
+  overflow-y: auto; /* Enable vertical scrolling for long content */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align content to the top */
+  align-items: center; /* Center content horizontally */
+  box-sizing: border-box; /* Include padding in height calculation */
+}
+
+.response-container p {
+  color: #000000; /* Change text color to black */
+  font-weight: normal; /* Remove bold styling */
+  font-size: 1.2rem; /* Reduce font size */
+  text-align: center;
+}
+
+.response-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.response-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.response-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.response-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Adjust response card styles to fit within the container */
+.response-card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+  max-width: 100%; /* Ensure it doesn't exceed the container width */
+  word-break: break-word; /* Handle long words gracefully */
+  overflow: hidden; /* Prevent content overflow */
+}
+
+/* 위치 찾기 카드 */
+.response-card.location {
+  border: 1px solid #ccc;
+}
+
+.response-card.location ul {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+}
+
+.response-card.location li {
+  padding: 8px;
+  margin: 5px 0;
+  background-color: #FFF;
+  border-radius: 5px;
+}
+
+/* 길찾기 카드 */
+.response-card.route {
+  background-color: #FFF;
+}
+
+.route-details {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: ;
+  border-radius: 8px;
+}
+
+.route-step {
+  padding: 10px;
+  margin: 5px 0;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 버스 정보 카드 */
+.response-card.bus {
+  background-color: #FFF;
+}
+
+.response-card.bus table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+
+.response-card.bus th,
+.response-card.bus td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.response-card.bus th {
+  background-color: #f5f5f5;
+}
+
+/* 알림 카드 */
+.response-card.notice {
+  background-color: #FFF;
+}
+
+/* 지도 버튼 */
+.show-map-btn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: #049FD9FF;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.show-map-btn:hover {
+  background-color: #45a049;
+}
+
+/* 로딩 메시지 */
+.loading-message {
+  text-align: center;
+  color: #049FD9FF;
+  font-style: italic;
+  padding: 20px;
+}
+
+.response-container .initial-message,
+.response-container .loading-message {
+  color: #049FD9FF; /* Keep sky blue color */
+  font-weight: bold; /* Keep bold styling */
+  font-size: 2rem; /* Slightly larger font size */
+  text-align: center;
+}
+
+.response-container .bot-response p {
+  color: #000000; /* Keep chatbot response text black */
+  font-weight: normal; /* Remove bold styling */
+  font-size: 1.2rem; /* Keep smaller font size */
+  text-align: center;
+}
+
+/* 텍스트 입력 컨테이너 스타일 */
+.text-input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 16px;
+  color: #333;
+}
+
+.text-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+}
+
+.send-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.send-button:hover {
+  background-color: #45a049;
+}
+
+.send-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.map-container {
+  margin: 15px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bubble-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bubble-image {
+  width: 300px;  /* 말풍선 크기 조절 */
+  height: auto;
+}
+
+.realtime-text-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 120px;
+  background-color: white;
+  border-bottom: 3px solid #049FD9FF;
+  margin: 0 auto; /* 가운데 정렬을 위해 추가 */
+  margin-top: 20px; /* 위쪽 여백 추가 */
+  margin-bottom: 5px; /* 아래쪽 여백 추가 */
+}
+
+.realtime-text {
+  font-size: 25px;
+  font-weight: bold;
+  color: #049FD9FF;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 10px; /* 텍스트 좌우 여백 추가 */
+}
+
+.test-button:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(4, 159, 217, 0.6);
+}
+
+.response-card.notice p.greeting-text {
+  color: #049FD9FF;
+  font-size: 32px; /* 28px에서 32px로 증가 */
+  font-weight: bold;
+  text-align: center;
+  padding: 20px 0;
+  margin: 0;
+}
+
+/* 기존 notice 카드의 기본 스타일 수정 */
+.response-card.notice p:not(.greeting-text) {
+  color: inherit;
+  font-size: 24px; /* 일반 알림 메시지도 크기 증가 */
+  font-weight: normal;
+}
+
+.response-card.notice {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px; /* 패딩도 약간 증가 */
+  margin: 20px 0;
+  background-color: white;
+}
+
+.emergency-button:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+}
+
+.emergency-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: emergencyBlink 1s infinite;
+}
+
+.emergency-modal {
+  background-color: #ff0000;
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+  animation: modalPulse 2s infinite;
+}
+
+.emergency-modal h2 {
+  color: white;
+  font-size: 24px;
+  margin: 0;
+}
+
+@keyframes emergencyBlink {
+  0%, 100% { background-color: rgba(0, 0, 0, 0.5); }
+  50% { background-color: rgba(0, 0, 0, 0.8); }
+}
+
+@keyframes modalPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cisco-logo {
+  height: 30px;
+  width: auto;
+  margin-right: 20px; /* 로고와 시간 사이 간격 */
+}
+
+.time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto; /* 시간을 왼쪽으로 밀착 */
+}
+
+.weather-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-left: auto; /* 날씨 정보를 오른쪽으로 밀착 */
+}
+
+.bus-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px; /* 버스 아이템 간격 */
+  margin-top: 20px; /* 상단 여백 */
+}
+
+/* 버스 리스트 스타일 */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes shadowPulse {
+  0% {
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(255, 0, 0, 0.8);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+  }
+}
+
+/* 기본 버스 아이템 스타일 */
+.bus-item {
+  background: linear-gradient(
+    90deg,
+    #049FD9FF 0%,
+    #8977AD 25%,
+    #049FD9FF 50%,
+    #8977AD 75%,
+    #049FD9FF 100%
+  );
+  background-size: 200% 100%;
+  animation: gradientFlow 5s linear infinite;
+  padding: 15px;
+  border-radius: 12px;
+  min-width: 28%;
+  min-height: 5%;
+  text-align: center;
+  color: white;
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 첫 번째 버스 아이템에 대한 특별한 스타일 */
+.bus-item:first-child {
+  background: linear-gradient(
+    90deg,
+    #F27B92 0%,
+    #FF3399 25%,
+    #F27B92 50%,
+    #FF3399 75%,
+    #F27B92 100%
+  );
+  background-size: 200% 100%;
+  animation: 
+    gradientFlow 5s linear infinite,
+    shadowPulse 2s ease-in-out infinite;
+}
+
+.bus-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.bus-item:first-child:hover {
+  transform: translateY(-5px);
+  animation: 
+    gradientFlow 5s linear infinite,
+    shadowPulse 2s ease-in-out infinite;
+}
+
+.bus-item .bus-number {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.bus-item .arrival-time {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.bus-item .prev-count {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+}
