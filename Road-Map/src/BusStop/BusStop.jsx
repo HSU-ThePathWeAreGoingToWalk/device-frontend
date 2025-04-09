@@ -60,6 +60,11 @@ function BusStop() {
 
   const [displayedText, setDisplayedText] = useState("");
 
+  const CURRENT_LOCATION = {
+    lng: 127.29453611111111,
+    lat: 34.620875
+  };
+
   const updateTime = () => {
     const now = new Date();
     const hours = now.getHours();
@@ -324,14 +329,17 @@ function BusStop() {
   // 응답 컴포넌트들 수정
   const LocationComponent = ({ data }) => (
     <div className="response-card location">
-      <p>{data.conversation_response}</p>
+      {/* <p>{data.conversation_response}</p> */}
       
       {data.coordinates && (
         <div className="map-container">
           <Map
-            coordinates={data.coordinates}
+            coordinates={[
+              [CURRENT_LOCATION.lng, CURRENT_LOCATION.lat],
+              ...data.coordinates
+            ]}
             type="location"
-            places={data.places}
+            places={["현재 위치", ...data.places]}
           />
         </div>
       )}
@@ -346,7 +354,7 @@ function BusStop() {
 
   const RouteComponent = ({ data }) => (
     <div className="response-card route">
-      <p>{data.conversation_response}</p>
+      {/* <p>{data.conversation_response}</p> */}
       
       {data.coordinates && (
         <div className="map-container">
@@ -447,7 +455,26 @@ function BusStop() {
       });
   
       if (data.type === 'location') {
+        // 현재 위치 마커
+        const currentLocationMarker = new window.kakao.maps.Marker({
+          position: new window.kakao.maps.LatLng(CURRENT_LOCATION.lat, CURRENT_LOCATION.lng),
+          image: new window.kakao.maps.MarkerImage(
+            'https://www.pngall.com/wp-content/uploads/2017/05/Map-Marker-Free-Download-PNG.png',
+            new window.kakao.maps.Size(40, 40),
+            { offset: new window.kakao.maps.Point(20, 40) }
+          )
+        });
+        currentLocationMarker.setMap(map);
+
+        const currentInfowindow = new window.kakao.maps.InfoWindow({
+          content: '<div style="padding:5px; font-weight:bold;">현재 위치</div>'
+        });
+        currentInfowindow.open(map, currentLocationMarker);
+
+        // 목적지 마커들
         data.coordinates.forEach((coord, idx) => {
+          if (idx === 0 && coord[1] === CURRENT_LOCATION.lat && coord[0] === CURRENT_LOCATION.lng) return;
+          
           const marker = new window.kakao.maps.Marker({
             position: new window.kakao.maps.LatLng(coord[1], coord[0])
           });
@@ -483,6 +510,9 @@ function BusStop() {
       }
   
       const bounds = new window.kakao.maps.LatLngBounds();
+      if (data.type === 'location') {
+        bounds.extend(new window.kakao.maps.LatLng(CURRENT_LOCATION.lat, CURRENT_LOCATION.lng));
+      }
       data.coordinates.forEach(coord => {
         bounds.extend(new window.kakao.maps.LatLng(coord[1], coord[0]));
       });

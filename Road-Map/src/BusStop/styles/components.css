@@ -3,14 +3,14 @@
   background-color: white;
   padding: 20px;
   border-radius: 12px;
-  max-width: 100%;
+  width: 850px;
   word-break: break-word;
   overflow: hidden;
 }
 
 /* 위치 찾기 카드 */
 .response-card.location {
-  border: 1px solid #ccc;
+  
 }
 
 .response-card.location ul {
