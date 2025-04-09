@@ -22,6 +22,7 @@ const openai = new OpenAI({
 
 function BusStop() {
   const audioRef = useRef(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);  // 새로운 상태 추가
   
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
@@ -167,14 +168,19 @@ function BusStop() {
     }
   }, []);
 
-  // Text-to-Speech 함수
+  // Text-to-Speech 함수 수정
   const speakText = async (text) => {
     if (isMuted) return;
 
     try {
+      if (recognition && isRecording) {
+        recognition.stop();  // TTS 시작 전 음성 인식 중지
+      }
+      setIsSpeaking(true);  // TTS 시작
+
       const response = await openai.audio.speech.create({
         model: 'gpt-4o-mini-tts',
-        voice: 'sage', // 새로운 음성 'sage' 사용
+        voice: 'sage',
         input: text,
         instructions: `
           Voice: Warm, empathetic, and professional, reassuring the customer that their issue is understood and will be resolved.
@@ -200,9 +206,17 @@ function BusStop() {
       audio.onended = () => {
         URL.revokeObjectURL(audioUrl);
         audioRef.current = null;
+        setIsSpeaking(false);  // TTS 종료
+        if (!isMuted) {
+          startRecording();  // TTS 종료 후 음성 인식 재시작
+        }
       };
     } catch (error) {
       console.error('OpenAI TTS 에러:', error);
+      setIsSpeaking(false);
+      if (!isMuted) {
+        startRecording();
+      }
     }
   };
 
@@ -219,9 +233,9 @@ function BusStop() {
     }
   };
 
-  // 음성 제어 함수
+  // 음성 제어 함수 수정
   const startRecording = () => {
-    if (recognition) {
+    if (recognition && !isSpeaking) {  // TTS가 실행 중이 아닐 때만 음성 인식 시작
       setDisplayedText("");
       setIsRecording(true);
       recognition.start();
@@ -657,6 +671,7 @@ function BusStop() {
           <button
             onClick={isRecording ? stopRecording : startRecording}
             className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
+            disabled={isSpeaking}  // TTS 실행 중일 때 버튼 비활성화
           >
             {isRecording ? (
               <svg 

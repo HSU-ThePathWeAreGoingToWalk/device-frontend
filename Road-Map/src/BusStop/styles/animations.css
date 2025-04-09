@@ -63,3 +63,24 @@
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
 }
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes shadowPulse {
+  0% {
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(255, 0, 0, 0.8);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+  }
+}
