@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid"; // Import UUID library
-import Map from "./Map"; // Import the Map component
 
 // API URL 관리
 const API_URL = "http://localhost:8000/chat"; // Replace with the actual API URL
@@ -41,14 +40,9 @@ enum QuestionType {
 
 // 위치 응답 컴포넌트
 const LocationComponent = ({ data }: { data: LocationResponse }) => (
-  <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
+  <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px" }}>
     <h3>📍 위치 찾기</h3>
     <p>{data.conversation_response}</p>
-    <Map 
-      coordinates={data.coordinates}
-      type="location"
-      places={data.places}
-    />
     <ul>
       {data.places.map((place, index) => (
         <li key={index}>✅ {place}</li>
@@ -58,29 +52,15 @@ const LocationComponent = ({ data }: { data: LocationResponse }) => (
 );
 
 // 길찾기 응답 컴포넌트
-const RouteComponent = ({ data }: { data: RouteResponse }) => {
-  const routeSteps = data.routes_text.split(/\d+\.\s/).filter((step) => step.trim() !== "");
-
-  return (
-    <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
-      <h3>🗺 길찾기</h3>
-      <p>{data.conversation_response}</p>
-      <Map 
-        coordinates={data.coordinates}
-        type="route"
-      />
-      <p>
-        <strong>🚶 이동 경로:</strong>
-      </p>
-      <ol>
-        {routeSteps.map((step, index) => (
-          <li key={index}>{step.trim()}</li>
-        ))}
-        <li><strong>도착!</strong></li>
-      </ol>
-    </div>
-  );
-};
+const RouteComponent = ({ data }: { data: RouteResponse }) => (
+  <div style={{ border: "1px solid #4CAF50", padding: "10px", borderRadius: "5px", backgroundColor: "#f0fff0" }}>
+    <h3>🗺 길찾기</h3>
+    <p>{data.conversation_response}</p>
+    <p>
+      <strong>🚶 이동 경로:</strong> {data.routes_text}
+    </p>
+  </div>
+);
 
 // 버스 응답 컴포넌트
 const BusComponent = ({ data }: { data: BusResponse }) => (
@@ -108,8 +88,8 @@ const BusComponent = ({ data }: { data: BusResponse }) => (
 
 // 공지 응답 컴포넌트
 const NoticeComponent = ({ data }: { data: NoticeResponse }) => (
-  <div style={{ border: "1px solid #FF9800", padding: "10px", borderRadius: "5px", backgroundColor: "#333", color: "white" }}>
-    <h3>📢 공지사항 및 일상</h3>
+  <div style={{ border: "1px solid #FF9800", padding: "10px", borderRadius: "5px", backgroundColor: "#FFF3E0" }}>
+    <h3>📢 공지사항</h3>
     <p>{data.response}</p>
   </div>
 );
@@ -120,36 +100,8 @@ const ResponseComponent = () => {
   const [selectedType, setSelectedType] = useState<QuestionType | null>(null);
   const [responseData, setResponseData] = useState<any>(null);
   const [userMessage, setUserMessage] = useState(""); // State for user input
-  const [chatResponse, setChatResponse] = useState<string>("질문하세요...."); // Default chatbot response
+  const [chatResponse, setChatResponse] = useState<string | null>(null); // State for chatbot response
   const [isLoading, setIsLoading] = useState(false);
-
-  // "감지한 사람 수" 상태 관리
-  const [detectedPeople, setDetectedPeople] = useState<number>(0); // 초기 값은 0
-
-  // 사람 수 증가 함수
-  const increasePeople = () => {
-    setDetectedPeople((prev) => {
-      const newCount = prev < 10 ? prev + 1 : prev; // 최대값 10
-      if (prev === 0 && newCount > 0) {
-        // 0명에서 1명 이상으로 변경될 때
-        setChatResponse("오늘은 어디 가시나요?");
-      }
-      return newCount;
-    });
-  };
-
-  // 사람 수 감소 함수
-  const decreasePeople = () => {
-    setDetectedPeople((prev) => {
-      const newCount = prev > -1 ? prev - 1 : prev; // 최소값 -1
-      if (prev > 0 && newCount === 0) {
-        // 1명 이상에서 0명으로 변경될 때
-        resetSession(); // 세션 초기화
-        setChatResponse("질문하세요....");
-      }
-      return newCount;
-    });
-  };
 
   // Function to handle sending a message to the backend API
   const sendMessageToAPI = async () => {
@@ -200,7 +152,7 @@ const ResponseComponent = () => {
     setSessionId(newSessionId); // Update the session_id state
     setResponseData(null); // Clear previous responses
     setSelectedType(null); // Reset selected type
-    setChatResponse("질문하세요...."); // Reset chatbot response
+    setChatResponse(null); // Clear chat response
     setUserMessage(""); // Clear user input
     console.log("Session reset. New session_id:", newSessionId);
   };
@@ -208,7 +160,7 @@ const ResponseComponent = () => {
   // 응답 데이터를 기반으로 적절한 컴포넌트를 렌더링
   const renderComponent = () => {
     if (!responseData) {
-      return <h3>{chatResponse}</h3>;
+      return <p>응답을 가져오는 중...</p>;
     }
 
     switch (selectedType) {
@@ -240,7 +192,7 @@ const ResponseComponent = () => {
   };
 
   return (
-    <div style={{ backgroundColor: "black", color: "white", minHeight: "100vh", padding: "20px" }}>
+    <div>
       <h1>챗봇 응답 테스트</h1>
       <div style={{ marginTop: "20px" }}>
         <h2>현재 세션 ID: {sessionId}</h2> {/* Display the session_id */}
@@ -249,12 +201,12 @@ const ResponseComponent = () => {
           value={userMessage}
           onChange={(e) => setUserMessage(e.target.value)}
           placeholder="챗봇에게 질문을 입력하세요."
-          style={{ width: "100%", height: "100px", marginBottom: "10px", backgroundColor: "#333", color: "white", border: "1px solid #555" }}
+          style={{ width: "100%", height: "100px", marginBottom: "10px" }}
         />
         <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={sendMessageToAPI}
-            style={{ padding: "10px 20px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px" }}
+            style={{ padding: "10px 20px" }}
             disabled={isLoading} // Disable button when loading
           >
             {isLoading ? "전송 중..." : "전송"}
@@ -272,25 +224,6 @@ const ResponseComponent = () => {
           </div>
         )}
         <div style={{ marginTop: "20px" }}>{renderComponent()}</div>
-      </div>
-
-      {/* 감지한 사람 수 UI */}
-      <div style={{ marginTop: "40px", textAlign: "center" }}>
-        <h2>감지한 사람 수: {detectedPeople}</h2>
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "10px" }}>
-          <button
-            onClick={decreasePeople}
-            style={{ padding: "10px 20px", backgroundColor: "#FF5722", color: "white", border: "none", borderRadius: "5px" }}
-          >
-            -1
-          </button>
-          <button
-            onClick={increasePeople}
-            style={{ padding: "10px 20px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px" }}
-          >
-            +1
-          </button>
-        </div>
       </div>
     </div>
   );
