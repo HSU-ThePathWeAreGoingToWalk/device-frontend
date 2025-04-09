@@ -738,7 +738,7 @@ function BusStop() {
       )}
 
 
-      {/* <div style={{   
+      <div style={{   
         position: 'fixed', 
         bottom: '80px', 
         left: '50%', 
@@ -814,7 +814,7 @@ function BusStop() {
         >
           전송
         </button>
-      </div> */}
+      </div>
 
 
 

@@ -127,10 +127,10 @@
 .info-area {
   margin: 20px;
   padding: 15px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: white;
   border-radius: 12px;
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
 }
-
 .realtime-text-container {
   display: flex;
   justify-content: center;
