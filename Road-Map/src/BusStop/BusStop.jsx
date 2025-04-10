@@ -9,7 +9,7 @@ import busImg from "./bus.png";
 import subwayImg from "./subway.png";
 import shipImg from "./ship.png";
 import walkingImg from "./walking.png";
-import Map from '../Map/Map.tsx';
+import Map from '../components/Map/Map.tsx';
 import { v4 as uuidv4 } from "uuid";
 import ciscoLogo from "./cisco_logo.png";
 import OpenAI from 'openai';
@@ -17,7 +17,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // 브라우저에서 실행 허용
+  dangerouslyAllowBrowser: true, // 브라우저에서 실행 허용사용 허용
 });
 
 function BusStop() {
@@ -575,33 +575,85 @@ function BusStop() {
     }
   };
 
-  const handleEmergency = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
+  const handleEmergency = async () => {
+    try {
+      // 오디오 및 음성 인식 중지
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
 
-    if (recognition && isRecordingRef.current) {
-      recognition.stop();
-    }
+      if (recognition && isRecordingRef.current) {
+        recognition.stop();
+      }
 
-    setIsRecording(false);
-    isRecordingRef.current = false;
-    setRealtimeText("");
-    setUserMessage("");
-    setResponseType(null);
-    setResponseData(null);
-    setIsLoading(false);
+      setIsRecording(false);
+      isRecordingRef.current = false;
+      setRealtimeText("");
+      setUserMessage("");
+      setResponseType(null);
+      setResponseData(null);
+      setIsLoading(false);
 
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
+      // 비상 상황 API 요청
+      const emergencyData = {
+        timestamp: new Date().toISOString(),
+        location: CURRENT_LOCATION,
+        type: 'EMERGENCY_ALERT',
+        deviceInfo: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform
+        }
+      };
+
+      const response = await axios.post(
+        "http://localhost:9000/emergency",
+        emergencyData,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log("Emergency response:", response.data);
+
+      // UI 업데이트
+      setIsRefreshing(true);
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setIsEmergency(true);
+      }, 1000);
+
+    } catch (error) {
+      console.error("Emergency alert failed:", error);
+      // 에러가 발생하더라도 UI는 emergency 모드로 전환
       setIsEmergency(true);
-    }, 1000);
+    }
   };
 
   const handleCloseEmergency = () => {
     setIsEmergency(false);
+  };
+
+  const handleTTS = async (text) => {
+    try {
+      if (!process.env.REACT_APP_OPENAI_API_KEY) {
+        throw new Error('OpenAI API key is not configured');
+      }
+
+      const response = await openai.audio.speech.create({
+        model: "tts-1",
+        voice: "alloy",
+        input: text,
+      });
+
+      // ...existing code...
+      
+    } catch (error) {
+      console.error('OpenAI TTS Error:', error);
+      // 사용자에게 에러 메시지 표시
+    }
   };
 
   return (
@@ -808,16 +860,19 @@ function BusStop() {
       )}
 
 
-      <div style={{   
-        position: 'fixed', 
+        
+
+      <div style={{
+        margin: '50px',   
+      
         bottom: '80px', 
         left: '50%', 
-        transform: 'translateX(-50%)',
-        zIndex: 1000,
+      
+        
         display: 'flex',
         gap: '20px'
       }}>
-        <button
+        {/* <button
           onClick={startGreetingSequence}
           className="test-button"
           style={{
@@ -831,7 +886,7 @@ function BusStop() {
           }}
         >
           인사 시작하기
-        </button>
+        </button> */}
         <button
           onClick={handleEmergency}
           className="emergency-button"
@@ -842,7 +897,8 @@ function BusStop() {
             border: 'none',
             borderRadius: '8px',
             cursor: 'pointer',
-            fontSize: '16px'
+            fontSize: '16px',
+            marginLeft: '100px'
           }}
         >
           비상 상황
@@ -885,6 +941,7 @@ function BusStop() {
           전송
         </button>
       </div>
+
 
 
 
