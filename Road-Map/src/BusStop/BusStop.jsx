@@ -17,7 +17,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // 브라우저에서 실행 허용
+  dangerouslyAllowBrowser: true, // 브라우저에서 실행 허용사용 허용
 });
 
 function BusStop() {
@@ -634,6 +634,26 @@ function BusStop() {
 
   const handleCloseEmergency = () => {
     setIsEmergency(false);
+  };
+
+  const handleTTS = async (text) => {
+    try {
+      if (!process.env.REACT_APP_OPENAI_API_KEY) {
+        throw new Error('OpenAI API key is not configured');
+      }
+
+      const response = await openai.audio.speech.create({
+        model: "tts-1",
+        voice: "alloy",
+        input: text,
+      });
+
+      // ...existing code...
+      
+    } catch (error) {
+      console.error('OpenAI TTS Error:', error);
+      // 사용자에게 에러 메시지 표시
+    }
   };
 
   return (
