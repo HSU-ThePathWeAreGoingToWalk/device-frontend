@@ -9,10 +9,11 @@ import busImg from "./bus.png";
 import subwayImg from "./subway.png";
 import shipImg from "./ship.png";
 import walkingImg from "./walking.png";
-import Map from '../Map/Map.tsx';
+import Map from '../components/Map/Map.tsx';
 import { v4 as uuidv4 } from "uuid";
 import ciscoLogo from "./cisco_logo.png";
 import OpenAI from 'openai';
+
 
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -22,6 +23,7 @@ const openai = new OpenAI({
 function BusStop() {
   const audioRef = useRef(null);
   const [isSpeaking, setIsSpeaking] = useState(false);  // 새로운 상태 추가
+
 
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
@@ -62,11 +64,6 @@ function BusStop() {
     lng: 127.29453611111111,
     lat: 34.620875
   };
-
-  const [socket, setSocket] = useState(null);
-  const [emergencyStatus, setEmergencyStatus] = useState('idle');
-  const BUS_STOP_ID = 45;  // 고정된 정류장 ID
-  const SERVER_URL = 'https://34e6-211-196-103-173.ngrok-free.app';
 
   const updateTime = () => {
     const now = new Date();
@@ -111,6 +108,22 @@ function BusStop() {
     return () => clearInterval(busInterval);
   }, []);
 
+  // useEffect(() => {
+  //   const fetchWeatherData = async () => {
+  //     try {
+  //       const response = await fetch("https://api.example.com/weather");
+  //       const data = await response.json();
+  //       setWeatherData({ dust: data.dust, temperature: data.temperature });
+  //     } catch (error) {
+  //       console.error("🌤️ Weather data fetch error: ", error);
+  //       setWeatherData({ dust: "좋음", temperature: "17" });
+  //     }
+  //   };
+
+  //   fetchWeatherData();
+  // }, []);
+
+  // 음성 인식 초기화 부분 수정
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -164,37 +177,7 @@ function BusStop() {
     }
   }, []);
 
-  useEffect(() => {
-    const ws = new WebSocket(`${SERVER_URL.replace('https', 'wss')}/ws/emergency`);
-    
-    ws.onopen = () => {
-      console.log('Emergency WebSocket Connected');
-      setSocket(ws);
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.busStopId === BUS_STOP_ID) {
-        setEmergencyStatus('received');
-        // 필요한 경우 추가 처리
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket Error:', error);
-      setEmergencyStatus('error');
-    };
-
-    ws.onclose = () => {
-      console.log('Emergency WebSocket Disconnected');
-      setSocket(null);
-    };
-
-    return () => {
-      if (ws) ws.close();
-    };
-  }, []);
-
+  // Text-to-Speech 함수 수정
   const speakText = async (text) => {
     if (isMuted) return;
 
@@ -248,6 +231,7 @@ function BusStop() {
     }
   };
 
+  // 음소거 토글 함수 수정
   const toggleMute = () => {
     const newMuteState = !isMuted;
     setIsMuted(newMuteState);
@@ -260,6 +244,7 @@ function BusStop() {
     }
   };
 
+  // 음성 제어 함수 수정
   const startRecording = () => {
     if (!recognition || isSpeaking || isRecordingRef.current) return;
 
@@ -288,6 +273,7 @@ function BusStop() {
     }
   };
 
+  // 응답 유형 추론 및 처리를 위한 수정된 sendMessageToAPI 함수
   const sendMessageToAPI = async (message) => {
     setIsLoading(true);
     setUserQuestion(message);
@@ -358,8 +344,11 @@ function BusStop() {
     }
   };
 
+  // 응답 컴포넌트들 수정
   const LocationComponent = ({ data }) => (
     <div className="response-card location">
+      {/* <p>{data.conversation_response}</p> */}
+      
       {data.coordinates && (
         <div className="map-container">
           <Map
@@ -383,6 +372,8 @@ function BusStop() {
 
   const RouteComponent = ({ data }) => (
     <div className="response-card route">
+      {/* <p>{data.conversation_response}</p> */}
+      
       {data.coordinates && (
         <div className="map-container">
           <Map
@@ -439,6 +430,7 @@ function BusStop() {
     </div>
   );
 
+  // renderResponse 함수 수정
   const renderResponse = () => {
     if (!responseData) {
       return (
@@ -468,6 +460,7 @@ function BusStop() {
     );
   };
 
+  // Map 컴포넌트
   const MapComponent = ({ data }) => {
     const mapRef = useRef(null);
   
@@ -480,6 +473,7 @@ function BusStop() {
       });
   
       if (data.type === 'location') {
+        // 현재 위치 마커
         const currentLocationMarker = new window.kakao.maps.Marker({
           position: new window.kakao.maps.LatLng(CURRENT_LOCATION.lat, CURRENT_LOCATION.lng),
           image: new window.kakao.maps.MarkerImage(
@@ -495,6 +489,7 @@ function BusStop() {
         });
         currentInfowindow.open(map, currentLocationMarker);
 
+        // 목적지 마커들
         data.coordinates.forEach((coord, idx) => {
           if (idx === 0 && coord[1] === CURRENT_LOCATION.lat && coord[0] === CURRENT_LOCATION.lng) return;
           
@@ -556,6 +551,8 @@ function BusStop() {
   const startGreetingSequence = async () => {
     const greetingText = "안녕하세요, 오늘은 어디 가시나요?";
     
+
+
     setResponseType('notice');
     setResponseData({
       response: greetingText,
@@ -565,6 +562,7 @@ function BusStop() {
     try {
       await speakText(greetingText);
 
+            // 1초 지연
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setTimeout(() => {
@@ -579,8 +577,7 @@ function BusStop() {
 
   const handleEmergency = async () => {
     try {
-      setEmergencyStatus('sending');
-      
+      // 오디오 및 음성 인식 중지
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -598,16 +595,20 @@ function BusStop() {
       setResponseData(null);
       setIsLoading(false);
 
-      const emergencyResponse = await axios.post(
-        `${SERVER_URL}/api/simulate-emergency/${BUS_STOP_ID}`,
-        {
-          timestamp: new Date().toISOString(),
-          location: CURRENT_LOCATION,
-          deviceInfo: {
-            userAgent: navigator.userAgent,
-            platform: navigator.platform
-          }
-        },
+      // 비상 상황 API 요청
+      const emergencyData = {
+        timestamp: new Date().toISOString(),
+        location: CURRENT_LOCATION,
+        type: 'EMERGENCY_ALERT',
+        deviceInfo: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform
+        }
+      };
+
+      const response = await axios.post(
+        "http://localhost:9000/emergency",
+        emergencyData,
         {
           headers: {
             'Content-Type': 'application/json'
@@ -615,16 +616,9 @@ function BusStop() {
         }
       );
 
-      console.log("Emergency API Response:", emergencyResponse.data);
+      console.log("Emergency response:", response.data);
 
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-          type: 'EMERGENCY_ALERT',
-          busStopId: BUS_STOP_ID,
-          timestamp: new Date().toISOString()
-        }));
-      }
-
+      // UI 업데이트
       setIsRefreshing(true);
       setTimeout(() => {
         setIsRefreshing(false);
@@ -633,7 +627,7 @@ function BusStop() {
 
     } catch (error) {
       console.error("Emergency alert failed:", error);
-      setEmergencyStatus('error');
+      // 에러가 발생하더라도 UI는 emergency 모드로 전환
       setIsEmergency(true);
     }
   };
@@ -641,20 +635,6 @@ function BusStop() {
   const handleCloseEmergency = () => {
     setIsEmergency(false);
   };
-
-  const EmergencyModal = () => (
-    <div className="emergency-overlay" onClick={handleCloseEmergency}>
-      <div className="emergency-modal" onClick={e => e.stopPropagation()}>
-        <h2>비상 버튼이 눌렸습니다!</h2>
-        <h2>
-          {emergencyStatus === 'sending' && '관제 센터에 알림을 전송 중입니다...'}
-          {emergencyStatus === 'received' && '관제 센터에서 알림을 수신했습니다. 곧 도움이 도착할 예정입니다.'}
-          {emergencyStatus === 'error' && '알림 전송 중 오류가 발생했습니다. 112나 119로 직접 연락해주세요.'}
-          {emergencyStatus === 'idle' && '관제 센터와 연락 시도중이니 잠시만 기다려 주십시오'}
-        </h2>
-      </div>
-    </div>
-  );
 
   return (
     <div className="app-container">
@@ -859,13 +839,34 @@ function BusStop() {
         </div>
       )}
 
+
+        
+
       <div style={{
         margin: '50px',   
+      
         bottom: '80px', 
         left: '50%', 
+      
+        
         display: 'flex',
         gap: '20px'
       }}>
+        {/* <button
+          onClick={startGreetingSequence}
+          className="test-button"
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#049FD9FF',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          인사 시작하기
+        </button> */}
         <button
           onClick={handleEmergency}
           className="emergency-button"
@@ -884,7 +885,46 @@ function BusStop() {
         </button>
       </div>
 
-      {isEmergency && <EmergencyModal />}
+      {isEmergency && (
+        <div className="emergency-overlay" onClick={handleCloseEmergency}>
+          <div className="emergency-modal" onClick={e => e.stopPropagation()}>
+            <h2>비상 버튼이 눌렸습니다!</h2>
+            <h2>관리자와 연락 시도중이니 잠시만 기다려 주십시오</h2>
+          </div>
+        </div>
+      )}
+
+      <div className="text-input-container">
+        <input
+          type="text"
+          value={userMessage}
+          onChange={(e) => setUserMessage(e.target.value)}
+          placeholder="질문을 입력하세요..."
+          className="text-input"
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && userMessage.trim()) {
+              sendMessageToAPI(userMessage);
+              setUserMessage('');
+            }
+          }}
+        />
+        <button
+          onClick={() => {
+            if (userMessage.trim()) {
+              sendMessageToAPI(userMessage);
+              setUserMessage('');
+            }
+          }}
+          className="send-button"
+          disabled={!userMessage.trim()}
+        >
+          전송
+        </button>
+      </div>
+
+
+
+
     </div>
   );
 }

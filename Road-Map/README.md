@@ -1,70 +1,56 @@
-# Getting Started with Create React App
+# 🚌 고흥시 버스정류장 길찾기 서비스
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+고흥시 버스정류장에서 원하는 목적지까지의 경로를 찾아주는 웹 서비스입니다.
 
-## Available Scripts
+## 🌟 주요 기능
 
-In the project directory, you can run:
+### 1. 음성으로 목적지 검색
+- 음성 인식을 통한 자연스러운 목적지 검색
+- OpenAI를 활용한 자연어 처리로 정확한 의도 파악
 
-### `npm start`
+### 2. 지도 기반 경로 안내
+- Kakao Maps API를 활용한 실시간 지도 표시
+- 현재 위치에서 목적지까지의 최적 경로 제공
+- 주요 경유지 정보 표시
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 3. 사용자 친화적 인터페이스
+- 반응형 디자인으로 모바일/데스크톱 모두 지원
+- 직관적인 UI로 누구나 쉽게 사용 가능
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠 기술 스택
 
-### `npm test`
+### 프론트엔드
+- React.js
+- TypeScript
+- Kakao Maps API
+- OpenAI API
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 배포
+- Docker
+- Nginx
 
-### `npm run build`
+## 📋 요구사항
+- Docker 및 Docker Compose
+- OpenAI API Key
+- Kakao Maps API Key
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🚀 실행 방법
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. 저장소 클론
+```bash
+git clone https://github.com/your-username/Road-Map.git
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. 환경 변수 설정
+```bash
+# .env.production 파일 생성
+REACT_APP_OPENAI_API_KEY=your_openai_api_key
+```
 
-### `npm run eject`
+3. Docker Compose로 실행
+```bash
+docker-compose up --build
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+4. 브라우저에서 접속
+`
