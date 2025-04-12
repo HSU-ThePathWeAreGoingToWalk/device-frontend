@@ -658,6 +658,7 @@ function BusStop() {
 
   return (
     <div className="app-container">
+      {/* Status Bar remains at the top */}
       <div className="status-bar">
         <img 
           src={ciscoLogo} 
@@ -712,140 +713,187 @@ function BusStop() {
         </div>
       </div>
 
-      <div className="character-area">
-        <img 
-          src={isMuted ? characterSadImg : characterImg}
-          alt="캐릭터"
-          className="character-image" 
-        />
-        <div className="bubble-container">
-          <img
-            src={bubbleImg}
-            alt="말풍선"
-            className="bubble-image"
-          />
-          <button
-            onClick={toggleMute}
-            className={`voice-button mute ${isMuted ? 'active' : ''}`}
-            title={isMuted ? '음소거 해제' : '음소거'}
-          >
-            {isMuted ? (
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="40"
-                height="40"
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="#049FD9FF"
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
+      {/* Main content split into two columns */}
+      <div className="main-content">
+        {/* Left column (70%) */}
+        <div className="left-column">
+          <div className="character-area">
+            <img 
+              src={isMuted ? characterSadImg : characterImg}
+              alt="캐릭터"
+              className="character-image" 
+            />
+            <div className="bubble-container">
+              <img
+                src={bubbleImg}
+                alt="말풍선"
+                className="bubble-image"
+              />
+              <button
+                onClick={toggleMute}
+                className={`voice-button mute ${isMuted ? 'active' : ''}`}
+                title={isMuted ? '음소거 해제' : '음소거'}
               >
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-              </svg>
-            ) : (
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="40"
-                height="40"
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="#049FD9FF"
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-      
-      <div className="voice-control">
-        <ReactMic
-          record={isRecording}
-          className="sound-wave"
-          onStop={stopRecording}
-          strokeColor="#049FD9FF"
-          backgroundColor="#ffffff"
-        />
-        <div className="voice-buttons">
-          <button
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
-            disabled={isSpeaking}  // TTS 실행 중일 때 버튼 비활성화
-          >
-            {isRecording ? (
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="40" 
-                height="40" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="white"
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <rect x="6" y="4" width="12" height="16" rx="2" ry="2" />
-              </svg>
-            ) : (
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="40" 
-                height="40" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="white"
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                <line x1="12" y1="19" x2="12" y2="22" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-
-      <div className="realtime-text-container">
-        <div className="realtime-text">
-          {realtimeText || userMessage}
-          {realtimeText && <span className="recording-indicator">●</span>}
-        </div>
-      </div>
-
-      {renderResponse()}
-
-      <div className="info-area">
-        <div className="bus-info">
-          {busInfo.success && busInfo.buses.length > 0 ? (
-            <div className="bus-list">
-              {busInfo.buses.map((bus, index) => (
-                <div key={index} className="bus-item">
-                  <div className="bus-number">{bus.bus_number}번</div>
-                  <div className="arrival-time">
-                    {bus.arrival_minutes}분 후 도착
-                  </div>
-                  <div className="prev-count">
-                    {bus.prev_count}정거장 전
-                  </div>
-                </div>
-              ))}
+                {isMuted ? (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="#049FD9FF"
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                    <line x1="17" y1="9" x2="23" y2="15" />
+                  </svg>
+                ) : (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="#049FD9FF"
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                  </svg>
+                )}
+              </button>
             </div>
-          ) : (
-            <div className="no-bus-info">버스 정보가 없습니다</div>
-          )}
+          </div>
+          
+          <div className="voice-control">
+            <ReactMic
+              record={isRecording}
+              className="sound-wave"
+              onStop={stopRecording}
+              strokeColor="#049FD9FF"
+              backgroundColor="#ffffff"
+            />
+            <div className="voice-buttons">
+              <button
+                onClick={isRecording ? stopRecording : startRecording}
+                className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
+                disabled={isSpeaking}
+              >
+                {isRecording ? (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="40" 
+                    height="40" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="white"
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <rect x="6" y="4" width="12" height="16" rx="2" ry="2" />
+                  </svg>
+                ) : (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="40" 
+                    height="40" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="white"
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="22" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="realtime-text-container">
+            <div className="realtime-text">
+              {realtimeText || userMessage}
+              {realtimeText && <span className="recording-indicator">●</span>}
+            </div>
+          </div>
+
+          {renderResponse()}
+
+          {/* <div className="text-input-container">
+            <input
+              type="text"
+              value={userMessage}
+              onChange={(e) => setUserMessage(e.target.value)}
+              placeholder="질문을 입력하세요..."
+              className="text-input"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && userMessage.trim()) {
+                  sendMessageToAPI(userMessage);
+                  setUserMessage('');
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                if (userMessage.trim()) {
+                  sendMessageToAPI(userMessage);
+                  setUserMessage('');
+                }
+              }}
+              className="send-button"
+              disabled={!userMessage.trim()}
+            >
+              전송
+            </button>
+          </div> */}
+        </div>
+
+        {/* Right column (30%) */}
+        <div className="right-column">
+          <div className="info-area">
+            <div className="bus-info">
+              {busInfo.success && busInfo.buses.length > 0 ? (
+                <div className="bus-list">
+                  {busInfo.buses.map((bus, index) => (
+                    <div key={index} className="bus-item">
+                      <div className="bus-number">{bus.bus_number}번</div>
+                      <div className="arrival-time">
+                        {bus.arrival_minutes}분 후 도착
+                      </div>
+                      <div className="prev-count">
+                        {bus.prev_count}정거장 전
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-bus-info">버스 정보가 없습니다</div>
+              )}
+            </div>
+          </div>
+
+          <div className="emergency-button-container">
+            <button
+              onClick={handleEmergency}
+              className="emergency-button"
+            >
+              관리자 호출
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Other components that should remain outside the columns */}
       {showMap && mapData && (
         <div className="map-overlay">
           <Map
@@ -859,52 +907,6 @@ function BusStop() {
         </div>
       )}
 
-
-        
-
-      <div style={{
-        margin: '50px',   
-      
-        bottom: '80px', 
-        left: '50%', 
-      
-        
-        display: 'flex',
-        gap: '20px'
-      }}>
-        {/* <button
-          onClick={startGreetingSequence}
-          className="test-button"
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#049FD9FF',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '16px'
-          }}
-        >
-          인사 시작하기
-        </button> */}
-        <button
-          onClick={handleEmergency}
-          className="emergency-button"
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#ff0000',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            marginLeft: '100px'
-          }}
-        >
-          비상 상황
-        </button>
-      </div>
-
       {isEmergency && (
         <div className="emergency-overlay" onClick={handleCloseEmergency}>
           <div className="emergency-modal" onClick={e => e.stopPropagation()}>
@@ -913,38 +915,6 @@ function BusStop() {
           </div>
         </div>
       )}
-
-      <div className="text-input-container">
-        <input
-          type="text"
-          value={userMessage}
-          onChange={(e) => setUserMessage(e.target.value)}
-          placeholder="질문을 입력하세요..."
-          className="text-input"
-          onKeyPress={(e) => {
-            if (e.key === 'Enter' && userMessage.trim()) {
-              sendMessageToAPI(userMessage);
-              setUserMessage('');
-            }
-          }}
-        />
-        <button
-          onClick={() => {
-            if (userMessage.trim()) {
-              sendMessageToAPI(userMessage);
-              setUserMessage('');
-            }
-          }}
-          className="send-button"
-          disabled={!userMessage.trim()}
-        >
-          전송
-        </button>
-      </div>
-
-
-
-
     </div>
   );
 }
