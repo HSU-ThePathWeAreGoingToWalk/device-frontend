@@ -1,7 +1,1004 @@
-@import './styles/layout.css';
-@import './styles/components.css';
-@import './styles/voice.css';
-@import './styles/chat.css';
-@import './styles/map.css';
-@import './styles/animations.css';
-@import './styles/responsive.css';
+/* styles.css */
+
+/* 깜빡임 효과 */
+@keyframes blink {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  
+  @keyframes blink-animation {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes icon-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+  
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  /* 회전 효과 */
+  @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+      animation-timing-function: ease-in;
+    }
+    50% {
+      transform: rotate(180deg);
+      animation-timing-function: linear;
+    }
+    100% {
+      transform: rotate(360deg);
+      animation-timing-function: ease-out;
+    }
+  }
+  
+  /* 비상 모달 효과 */
+  @keyframes emergencyBlink {
+    0%,
+    100% {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    50% {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+  }
+  
+  @keyframes modalPulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+  
+  /* 버스 아이템 효과 */
+  @keyframes gradientFlow {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 200% 50%;
+    }
+  }
+  
+  @keyframes shadowPulse {
+    0% {
+      box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+    }
+    50% {
+      box-shadow: 0 4px 25px rgba(255, 0, 0, 0.8);
+    }
+    100% {
+      box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+    }
+  }
+  
+  /* 애니메이션 적용 클래스 */
+  .blink {
+    animation: blink-animation 1s infinite;
+  }
+  
+  .transport-icon {
+    animation: icon-blink 1.5s infinite;
+  }
+  
+  .voice-button.refresh.rotating {
+    animation: rotate 1s;
+  }
+  
+  /* 전체 컨테이너 */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    background-color: white;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* 상단 상태바 */
+  .status-bar {
+    width: 100%;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    top: 0;
+  }
+  
+  .cisco-logo {
+    height: 30px;
+    width: auto;
+    margin-right: 20px;
+  }
+  
+  /* 시간 표시 */
+  .time {
+    display: flex;
+    align-items: center;
+    font-size: 25px;
+    font-weight: 800;
+    gap: 15px;
+    color: #049FD9FF;
+    margin-right: auto;
+  }
+  
+  .sun-icon,
+  .moon-icon {
+    width: 30px;
+    height: 30px;
+    color: #049FD9FF;
+  }
+  
+  /* 날씨 정보 */
+  .weather-info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 3%;
+  }
+  
+  .dust,
+  .temperature {
+    margin-top: 10px;
+    font-size: 25px;
+    font-weight: 800;
+    color: #049FD9FF;
+  }
+  
+  /* 메인 컨텐츠 */
+  .main-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  /* 왼쪽 컬럼 */
+  .left-column {
+    width: 80%;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: white;
+  }
+  
+  .left-sub-column {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .left-sub-column.left {
+    width: 35%;
+    min-width: 350px;
+    align-items: center;
+    gap: 30px;
+  }
+  
+/* 개선된 그라데이션 애니메이션 */
+.left-sub-column.right {
+    width: 65%;
+    height: 95%;
+    flex-grow: 1;
+    background: linear-gradient(
+        135deg,
+        #c9eaf9,
+        #b8bdff,
+        #c9eaf9,
+        #b8bdff,
+        #c9eaf9
+    );
+    background-size: 500% 500%; /* 더 큰 사이즈로 확장 */
+    border-radius: 16px;
+    box-shadow: 5 0 20px #5a6bfb;
+    animation: gradientFlow 12s linear infinite;
+}
+
+@keyframes gradientFlow {
+    0% {
+        background-position: 100% 100%;
+    }
+    100% {
+        background-position: -100% -100%; /* 음수 위치로 확장 */
+    }
+}
+  
+  /* 오른쪽 컬럼 */
+  .right-column {
+    width: 20%;
+    height: 95%;
+    display: flex;
+    flex-direction: column;
+    padding-right: 10px;
+    background-color: white;
+    overflow-y: auto;
+  }
+  
+  /* 캐릭터 영역 */
+  .character-area {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-left: 20px;
+  }
+  
+  .character-image {
+    width: 280px;
+    height: 280px;
+    object-fit: contain;
+  }
+  
+  /* 실시간 텍스트와 응답을 감싸는 새로운 컨테이너 */
+  .combined-response-area {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%; /* 추가 */
+    background-color: transparent; /* 부모의 그라데이션 배경을 따라감 */
+    box-shadow: none; /* 부모에서 그림자를 처리하므로 제거 */
+    border-radius: 0; /* 부모에서 둥글게 처리하므로 제거 */
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  /* 실시간 텍스트 */
+  .realtime-text-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100px;
+    background-color: transparent; /* 부모의 배경색을 따라감 */
+    border-bottom: 3px solid #049FD9FF;
+    margin-bottom: 20px;
+  }
+  
+  .realtime-text {
+    font-size: 25px;
+    font-weight: bold;
+    color: black; /* 텍스트 색상을 검정색으로 변경 */
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px;
+  }
+  
+/* 응답 컨테이너 */
+/* response-container 수정 */
+.response-container {
+    flex-grow: 1;
+    width: 100%;
+    overflow-y: auto; 
+    background-color: transparent;
+    position: relative; /* 추가 */
+    display: block; /* flex → block 변경 */
+}
+
+/* 초기 메시지 중앙 정렬 */
+.response-container .initial-message {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: black;
+    text-align: center;
+    width: 100%;
+    padding: 20px;
+}
+
+/* 로딩 인디케이터 중앙 정렬 */
+.loading-indicator {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+/* 실제 응답 컨텐츠 스타일 (기존 유지) */
+.bot-response {
+    width: 92%;
+    height: auto;
+    padding: 20px;
+}
+  
+  /* 스크롤바 숨기기 - Webkit 기반 브라우저 (Chrome, Safari, Edge) */
+  .response-container::-webkit-scrollbar {
+    display: none; /* 스크롤바 완전히 숨김 */
+  }
+  
+  /* 스크롤바 숨기기 - Firefox */
+  .response-container {
+    scrollbar-width: none; /* Firefox에서 스크롤바 숨김 */
+  }
+  
+  /* 스크롤바 숨기기 - IE 및 Edge (레거시) */
+  .response-container {
+    -ms-overflow-style: none; /* IE와 Edge에서 스크롤바 숨김 */
+  }
+  
+  .response-container p {
+    font-weight: normal;
+    font-size: 1.2rem;
+    text-align: center;
+    color: black; /* 텍스트 색상을 검정색으로 변경 */
+  }
+  
+  .response-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .response-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+  
+  .response-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  
+  .response-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* 초기 메시지 스타일 */
+  .response-container .initial-message {
+    font-weight: bold; /* 볼드체 적용 */
+    font-size: 1.5rem; /* 텍스트 크기 키움 */
+    color: black;
+  }
+  
+  /* 하단 정보 영역 */
+  .info-area {
+    flex: 0 1 auto;
+    margin: 20px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background-color: white;
+    border-radius: 12px;
+    /* box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1); */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  /* 버스 도착 정보 제목 */
+  .bus-info-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #049FD9FF;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 2px solid #049FD9FF; /* 구분선 추가 */
+    padding-bottom: 10px; /* 구분선과 텍스트 간격 조정 */
+    width: 100%; /* 구분선이 전체 너비를 차지하도록 */
+  }
+  
+  /* 버스 정보 */
+  .bus-info {
+    color: black; /* 텍스트 색상을 검정색으로 변경 */
+    text-align: center;
+    width: 100%;
+  }
+  
+  .bus-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: #049FD9FF 2px solid;
+  }
+  
+  /* 기존 gradientFlow 애니메이션 수정 */
+@keyframes gradientFlow {
+    0% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.bus-item {
+    background:rgb(69, 136, 236);
+    background-size: 400% 100%; /* 200% → 400%로 확장 */
+    animation: gradientFlow 8s linear infinite; /* 5초 → 8초로 변경 */
+    padding: 15px;
+    border-radius: 12px;
+    min-width: 28%;
+    min-height: 13vh;
+    text-align: center;
+    color: white;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.bus-item:first-child {
+    background: linear-gradient(
+        90deg,
+        #F27B92 25%,
+        #FF3399 50%,
+        #F27B92 75%
+    );
+    background-size: 400% 100%;
+    animation: gradientFlow 8s linear infinite, 
+               shadowPulse 2s ease-in-out infinite;
+}
+  
+  .bus-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .bus-item:first-child:hover {
+    transform: translateY(-5px);
+    animation: gradientFlow 5s linear infinite, shadowPulse 2s ease-in-out infinite;
+  }
+  
+  .bus-item .bus-number {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  
+  .bus-item .arrival-time {
+    font-size: 25px;
+    margin-bottom: 5px;
+  }
+  
+  .bus-item .prev-count {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .no-bus-info {
+    color: #999;
+    font-style: italic;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: bold;
+  }
+  
+/* 통합된 응답 카드 스타일 */
+.response-card {
+    background-color: transparent;
+    padding: 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-break: keep-all;
+    margin: 10px 0;
+    font-size: 1.4rem;
+
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* 공통 텍스트 스타일 */
+    p, li, td, th {
+        font-size: 1.4rem;
+        font-style: bold;
+        color: black;
+        margin: 0 0 10px;
+    }
+
+    /* 공지 유형 */
+    &.notice {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 30px;
+        margin: 20px 0;
+
+        .greeting-text {
+            font-size: 2rem;
+            color: #049FD9FF;
+            line-height: 1.5;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    /* 위치 유형 */
+    &.location {
+        flex-direction: column;
+        gap: 15px;
+
+        li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    }
+
+    /* 경로 유형 */
+    &.route {
+        flex-direction: column;
+        gap: 15px;
+
+        .route-step {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            padding: 0 10px;
+        }
+    }
+
+    /* 버스 유형 */
+    &.bus {
+        flex-direction: column;
+        gap: 15px;
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            table-layout: fixed;
+
+            th, td {
+                padding: 12px 8px;
+                border: 1px solid #049FD9FF;
+                word-break: keep-all;
+            }
+
+            th {
+                background-color: rgba(4, 159, 217, 0.1);
+                font-weight: bold;
+            }
+        }
+
+        .alternative-route h4 {
+            font-size: 1.5rem;
+            color: #049FD9FF;
+        }
+    }
+}
+
+/* 추가 공통 스타일 */
+.map-container {
+    max-width: 100%;
+    overflow: hidden;
+    margin: 15px 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.response-card.location ul {
+    padding: 0 15px;
+    list-style: none;
+}
+
+/* 지도 오버레이 텍스트 */
+.map-overlay h2 {
+  font-size: 1.6rem;
+}
+
+/* 초기 메시지 텍스트 */
+.initial-message {
+  font-size: 1.8rem !important;
+}
+
+/* 로딩 텍스트 */
+.loading-text {
+  font-size: 1.6rem !important;
+}
+  
+  /* 지도 컨테이너 (location, route에서 사용) */
+  .map-container {
+    margin: 15px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%; /* 부모에 맞게 100% */
+    max-width: 100%; /* 부모 너비 초과 방지 */
+  }
+  
+  /* 비상 버튼 */
+  .emergency-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .emergency-button {
+    width: 150px;
+    height: 150px;
+    background-color: #ff1111;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 25px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .emergency-button:hover {
+    background-color: #ff1111;
+    box-shadow: 0 0 16px 6px rgba(255, 16, 16, 0.8);
+  }
+  
+  /* 비상 모달 */
+  .emergency-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: emergencyBlink 1s infinite;
+  }
+  
+  .emergency-modal {
+    background-color: #ff0000;
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    animation: modalPulse 2s infinite;
+  }
+  
+  .emergency-modal h2 {
+    color: white;
+    font-size: 24px;
+    margin: 0;
+  }
+  
+  /* 지도 오버레이 */
+  .map-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 800px;
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+  }
+  
+  .map-container {
+    margin: 15px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .close-map-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px 16px;
+    background-color: #FF5722;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .close-map-btn:hover {
+    background-color: #F4511E;
+  }
+  
+  /* 음성 컨트롤 */
+  .voice-control {
+    max-width: 100%;
+    padding: 15px;
+    background-color: transparent;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    /* box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1); */
+  }
+  
+  .sound-wave {
+    width: 90%;
+    height: 50px; /* 단위 추가 */
+    border-left: 2px solid #049FD9FF; /* 왼쪽 테두리 */
+    border-right: 2px solid #049FD9FF; /* 오른쪽 테두리 */
+    border-top: none; /* 상단 테두리 제거 */
+    border-bottom: none; /* 하단 테두리 제거 */
+    background-color: transparent; /* 배경 투명화 */
+    margin: 0 auto; /* 중앙 정렬 */
+}
+
+/* 음성 버튼 공통 스타일 */
+.voice-button {
+  outline: none !important;
+  border: none !important;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+  
+
+  /* 음성 버튼 */
+  .voice-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .voice-button.toggle-record {
+    width: 35vh; /* 원형 → 직사각형 너비 */
+    height: 25vh; /* 원형 → 직사각형 높이 */
+    border-radius: 15px; /* 50% → 8px */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px; /* 내부 여백 추가 */
+    transition: all 0.3s ease;
+    background-color: #049FD9FF;
+    box-shadow: 0 0 15px rgba(4, 159, 217, 0.5);
+}
+  
+  .voice-button.toggle-record.recording {
+    background-color: #f44336;
+    box-shadow: 0 0 15px rgba(244, 67, 54, 0.5);
+  }
+  
+  .voice-button.toggle-record:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(4, 159, 217, 0.6);
+  }
+  
+  .voice-button.toggle-record.recording:hover {
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
+  }
+  
+  .voice-button.mute {
+    min-width: 35vh;
+    height: 15vh;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: white;
+    transition: all 0.3s ease; /* 기존 트랜지션 유지 */
+    box-shadow: 0 0 15px rgba(4, 159, 217, 0.5);
+    transform: scale(1); /* 기본 크기 추가 */
+}
+/* 버튼 내부 아이콘 크기 조정 */
+.voice-button.toggle-record svg,
+.voice-button.mute svg {
+    width: 30px; /* 40px → 30px */
+    height: 30px;
+    margin-right: 8px; /* 아이콘과 텍스트 간격 */
+}
+
+/* 기존 스타일 수정 */
+.voice-button.mute.active {
+    background-color: #00000088 !important; /* 뚜렷한 색상 변경 */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.167) !important;
+  }
+  
+  .voice-button.mute.active::after {
+    content: "음소거 해제" !important;
+    color: white !important;
+  }
+  
+  .voice-button.mute.active svg {
+    stroke: white !important;
+    fill: white !important;
+  }
+  
+/* 녹음 중 버튼 텍스트 추가 */
+.voice-button.toggle-record.recording::after {
+    content: "대화 중지";
+    color: white;
+    font-weight: bold;
+    font-size: 30px;
+}
+
+.voice-button.toggle-record:not(.recording)::after {
+    content: "대화 시작";
+    color: white;
+    font-weight: bold;
+    font-size: 30px;
+}
+/* 음소거 버튼 텍스트 추가 스타일 */
+.voice-button.mute::after {
+    content: "음소거";
+    color: #049FD9FF;
+    font-weight: bold;
+    font-size: 30px;
+}
+
+
+.voice-button.mute:hover,
+.voice-button.mute.active:hover {
+    background-color: white;
+    transform: scale(1.05); /* 5% 확대 */
+    box-shadow: 0 0 20px rgba(4, 159, 217, 0.6); /* 그림자 효과 강화 */
+}
+  
+  .voice-button.refresh {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #049FD9FF;
+    box-shadow: 0 0 15px rgba(4, 159, 217, 0.5);
+    cursor: pointer;
+    padding: 0;
+    margin-top: 30px;
+    margin-left: 20px;
+  }
+  
+  .voice-button.refresh:hover {
+    background-color: #049FD9FF;
+    opacity: 0.9;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(4, 159, 217, 0.6);
+  }
+  
+  /* 녹음 인디케이터 */
+  .recording-indicator {
+    display: inline-block;
+    margin-left: 8px;
+    color: #ff0000;
+    animation: blink 1s infinite;
+  }
+
+
+
+
+
+  /* 임시 대화 입력창 */
+
+  /* 텍스트 입력 컨테이너 */
+.text-input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 텍스트 입력 필드 */
+  .text-input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #049FD9FF;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  
+  .text-input:focus {
+    border-color: #005B96; /* 포커스 시 더 진한 파란색 */
+  }
+  
+  /* 전송 버튼 */
+  .send-button {
+    padding: 10px 20px;
+    background-color: #049FD9FF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .send-button:hover {
+    background-color: #005B96; /* 호버 시 더 진한 파란색 */
+    transform: scale(1.05);
+  }
+  
+  .send-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+
+  /* 인디케이터 관련 */
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 20px;
+  }
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #049FD9FF;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: rotate 1s linear infinite;
+  }
+  
+  .loading-text {
+    font-size: 1.5rem;
+    color: #049FD9FF;
+    font-weight: bold;
+    animation: blink-animation 1.5s infinite;
+  }

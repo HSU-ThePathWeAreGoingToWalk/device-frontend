@@ -14,20 +14,18 @@ import { v4 as uuidv4 } from "uuid";
 import ciscoLogo from "./cisco_logo.png";
 import OpenAI from 'openai';
 
-
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // 브라우저에서 실행 허용사용 허용
+  dangerouslyAllowBrowser: true,
 });
 
 function BusStop() {
   const audioRef = useRef(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);  // 새로운 상태 추가
-
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
-  const [weatherData, setWeatherData] = useState({ dust: "", temperature: "" });
+  const [weatherData, setWeatherData] = useState({ dust: "좋음", temperature: "17" });
   const [isEmergency, setIsEmergency] = useState(false);
   const [busInfo, setBusInfo] = useState({ 
     buses: [],
@@ -44,26 +42,21 @@ function BusStop() {
     const savedMuteState = localStorage.getItem('isMuted');
     return savedMuteState ? JSON.parse(savedMuteState) : false;
   });
-
-  // Voice recognition states
-  const isRecordingRef = useRef(isRecording);
-  const userMessageRef = useRef(userMessage);
-
-  // 실시간 음성 인식 텍스트를 위한 상태 추가
   const [realtimeText, setRealtimeText] = useState("");
-
-  // 상태 추가
   const [showMap, setShowMap] = useState(false);
   const [mapData, setMapData] = useState(null);
-
   const [isRefreshing, setIsRefreshing] = useState(false);
-
   const [displayedText, setDisplayedText] = useState("");
+  // 새로운 상태: 텍스트 입력 관리
+  const [inputText, setInputText] = useState("");
 
   const CURRENT_LOCATION = {
     lng: 127.29453611111111,
     lat: 34.620875
   };
+
+  const isRecordingRef = useRef(isRecording);
+  const userMessageRef = useRef(userMessage);
 
   const updateTime = () => {
     const now = new Date();
@@ -85,7 +78,6 @@ function BusStop() {
         const response = await axios.get("http://localhost:9000/bus");
         console.log("버스 데이터:", response.data);
         
-        // 도착 시간 순으로 정렬하고 최대 3개만 선택
         const sortedBuses = response.data
           .sort((a, b) => a.arrival_minutes - b.arrival_minutes)
           .slice(0, 3);
@@ -108,30 +100,14 @@ function BusStop() {
     return () => clearInterval(busInterval);
   }, []);
 
-  // useEffect(() => {
-  //   const fetchWeatherData = async () => {
-  //     try {
-  //       const response = await fetch("https://api.example.com/weather");
-  //       const data = await response.json();
-  //       setWeatherData({ dust: data.dust, temperature: data.temperature });
-  //     } catch (error) {
-  //       console.error("🌤️ Weather data fetch error: ", error);
-  //       setWeatherData({ dust: "좋음", temperature: "17" });
-  //     }
-  //   };
-
-  //   fetchWeatherData();
-  // }, []);
-
-  // 음성 인식 초기화 부분 수정
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognizer = new SpeechRecognition();
         recognizer.lang = 'ko-KR';
-        recognizer.continuous = true; // 연속 인식 활성화
-        recognizer.interimResults = true; // 중간 결과 활성화
+        recognizer.continuous = true;
+        recognizer.interimResults = true;
 
         recognizer.onstart = () => {
           console.log('음성 인식 시작...');
@@ -177,13 +153,12 @@ function BusStop() {
     }
   }, []);
 
-  // Text-to-Speech 함수 수정
   const speakText = async (text) => {
     if (isMuted) return;
 
     try {
       if (recognition && isRecordingRef.current) {
-        stopRecording();  // TTS 시작 전 음성 인식 확실히 중지
+        stopRecording();
       }
       setIsSpeaking(true);
 
@@ -216,7 +191,6 @@ function BusStop() {
         URL.revokeObjectURL(audioUrl);
         audioRef.current = null;
         setIsSpeaking(false);
-        // TTS 종료 후 약간의 지연을 두고 음성 인식 재시작
         if (!isMuted) {
           setTimeout(() => {
             if (!isRecordingRef.current) {
@@ -231,7 +205,6 @@ function BusStop() {
     }
   };
 
-  // 음소거 토글 함수 수정
   const toggleMute = () => {
     const newMuteState = !isMuted;
     setIsMuted(newMuteState);
@@ -244,7 +217,6 @@ function BusStop() {
     }
   };
 
-  // 음성 제어 함수 수정
   const startRecording = () => {
     if (!recognition || isSpeaking || isRecordingRef.current) return;
 
@@ -255,7 +227,6 @@ function BusStop() {
       recognition.start();
     } catch (error) {
       console.error("Speech recognition error:", error);
-      // 오류 발생시 상태 초기화
       setIsRecording(false);
       isRecordingRef.current = false;
     }
@@ -273,7 +244,6 @@ function BusStop() {
     }
   };
 
-  // 응답 유형 추론 및 처리를 위한 수정된 sendMessageToAPI 함수
   const sendMessageToAPI = async (message) => {
     setIsLoading(true);
     setUserQuestion(message);
@@ -344,11 +314,8 @@ function BusStop() {
     }
   };
 
-  // 응답 컴포넌트들 수정
   const LocationComponent = ({ data }) => (
     <div className="response-card location">
-      {/* <p>{data.conversation_response}</p> */}
-      
       {data.coordinates && (
         <div className="map-container">
           <Map
@@ -372,8 +339,6 @@ function BusStop() {
 
   const RouteComponent = ({ data }) => (
     <div className="response-card route">
-      {/* <p>{data.conversation_response}</p> */}
-      
       {data.coordinates && (
         <div className="map-container">
           <Map
@@ -430,37 +395,39 @@ function BusStop() {
     </div>
   );
 
-  // renderResponse 함수 수정
-  const renderResponse = () => {
-    if (!responseData) {
-      return (
-        <div className="response-container">
-          <p className="initial-message">
-            {isRecording ? "듣는 중입니다..." : "위 버튼을 눌러 대화를 시작하세요!"}
-          </p>
-        </div>
-      );
-    }
-
+// renderResponse 함수 수정
+const renderResponse = () => {
+  if (!responseData) {
     return (
       <div className="response-container">
-        <div className="bot-response">
-          {isLoading ? (
-            <p className="loading-message">답변을 생성 중입니다...</p>
-          ) : (
-            <>
-              {responseType === 'location' && <LocationComponent data={responseData} />}
-              {responseType === 'route' && <RouteComponent data={responseData} />}
-              {responseType === 'bus' && <BusComponent data={responseData} />}
-              {responseType === 'notice' && <NoticeComponent data={responseData} />}
-            </>
-          )}
-        </div>
+        <p className="initial-message">
+          {isRecording ? "듣는 중입니다..." : "대화 시작 버튼을 누르고 무엇이든 물어보세요!"}
+        </p>
       </div>
     );
-  };
+  }
 
-  // Map 컴포넌트
+  return (
+    <div className="response-container">
+      <div className="bot-response">
+        {isLoading ? (
+          <div className="loading-indicator">
+            <div className="spinner"></div>
+            <div className="loading-text">답변을 준비 중입니다...</div>
+          </div>
+        ) : (
+          <>
+            {responseType === 'location' && <LocationComponent data={responseData} />}
+            {responseType === 'route' && <RouteComponent data={responseData} />}
+            {responseType === 'bus' && <BusComponent data={responseData} />}
+            {responseType === 'notice' && <NoticeComponent data={responseData} />}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
   const MapComponent = ({ data }) => {
     const mapRef = useRef(null);
   
@@ -473,7 +440,6 @@ function BusStop() {
       });
   
       if (data.type === 'location') {
-        // 현재 위치 마커
         const currentLocationMarker = new window.kakao.maps.Marker({
           position: new window.kakao.maps.LatLng(CURRENT_LOCATION.lat, CURRENT_LOCATION.lng),
           image: new window.kakao.maps.MarkerImage(
@@ -489,7 +455,6 @@ function BusStop() {
         });
         currentInfowindow.open(map, currentLocationMarker);
 
-        // 목적지 마커들
         data.coordinates.forEach((coord, idx) => {
           if (idx === 0 && coord[1] === CURRENT_LOCATION.lat && coord[0] === CURRENT_LOCATION.lng) return;
           
@@ -551,8 +516,6 @@ function BusStop() {
   const startGreetingSequence = async () => {
     const greetingText = "안녕하세요, 오늘은 어디 가시나요?";
     
-
-
     setResponseType('notice');
     setResponseData({
       response: greetingText,
@@ -561,8 +524,6 @@ function BusStop() {
 
     try {
       await speakText(greetingText);
-
-            // 1초 지연
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setTimeout(() => {
@@ -577,7 +538,6 @@ function BusStop() {
 
   const handleEmergency = async () => {
     try {
-      // 오디오 및 음성 인식 중지
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -595,7 +555,6 @@ function BusStop() {
       setResponseData(null);
       setIsLoading(false);
 
-      // 비상 상황 API 요청
       const emergencyData = {
         timestamp: new Date().toISOString(),
         location: CURRENT_LOCATION,
@@ -618,7 +577,6 @@ function BusStop() {
 
       console.log("Emergency response:", response.data);
 
-      // UI 업데이트
       setIsRefreshing(true);
       setTimeout(() => {
         setIsRefreshing(false);
@@ -627,7 +585,6 @@ function BusStop() {
 
     } catch (error) {
       console.error("Emergency alert failed:", error);
-      // 에러가 발생하더라도 UI는 emergency 모드로 전환
       setIsEmergency(true);
     }
   };
@@ -647,18 +604,33 @@ function BusStop() {
         voice: "alloy",
         input: text,
       });
-
-      // ...existing code...
-      
     } catch (error) {
       console.error('OpenAI TTS Error:', error);
-      // 사용자에게 에러 메시지 표시
+    }
+  };
+
+  // 텍스트 입력 핸들러
+  const handleInputChange = (e) => {
+    setInputText(e.target.value);
+  };
+
+  // 전송 버튼 클릭 핸들러
+  const handleSendMessage = () => {
+    if (inputText.trim() === "") return; // 빈 입력 방지
+    sendMessageToAPI(inputText);
+    setInputText(""); // 입력 필드 초기화
+  };
+
+  // Enter 키로 전송 가능하도록
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
     }
   };
 
   return (
     <div className="app-container">
-      {/* Status Bar remains at the top */}
+      {/* Status Bar */}
       <div className="status-bar">
         <img 
           src={ciscoLogo} 
@@ -712,155 +684,148 @@ function BusStop() {
           <div className="temperature">온도: {weatherData.temperature}°C</div>
         </div>
       </div>
-
-      {/* Main content split into two columns */}
+  
+      {/* Main content */}
       <div className="main-content">
-        {/* Left column (70%) */}
+        {/* Left column */}
         <div className="left-column">
-          <div className="character-area">
-            <img 
-              src={isMuted ? characterSadImg : characterImg}
-              alt="캐릭터"
-              className="character-image" 
-            />
-            <div className="bubble-container">
+          {/* Left sub-column */}
+          <div className="left-sub-column left">
+            <div className="character-area">
               <img
-                src={bubbleImg}
-                alt="말풍선"
-                className="bubble-image"
+                src={isMuted ? characterSadImg : characterImg}
+                alt="캐릭터"
+                className="character-image"
+              />
+            </div>
+  
+            <div className="voice-control">
+              <ReactMic
+                record={isRecording}
+                className="sound-wave"
+                onStop={stopRecording}
+                strokeColor="#049FD9FF"
+                backgroundColor="#ffffff"
+                strokeWidth={15}
+              />
+              <div className="voice-buttons">
+                <button
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
+                  disabled={isSpeaking}
+                >
+                  {isRecording ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="6" y="4" width="12" height="16" rx="2" ry="2" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="22" />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  onClick={toggleMute}
+                  className={`voice-button mute ${isMuted ? 'active' : ''}`}
+                  title={isMuted ? '음소거 해제' : '음소거'}
+                >
+                  {isMuted ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#049FD9FF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                      <line x1="23" y1="9" x2="17" y2="15" />
+                      <line x1="17" y1="9" x2="23" y2="15" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#049FD9FF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* 텍스트 입력 필드와 전송 버튼 추가 */}
+            {/* <div className="text-input-container">
+              <input
+                type="text"
+                className="text-input"
+                value={inputText}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                placeholder="텍스트로 질문 입력..."
               />
               <button
-                onClick={toggleMute}
-                className={`voice-button mute ${isMuted ? 'active' : ''}`}
-                title={isMuted ? '음소거 해제' : '음소거'}
+                onClick={handleSendMessage}
+                className="send-button"
+                disabled={isLoading || inputText.trim() === ""}
               >
-                {isMuted ? (
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="40"
-                    height="40"
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="#049FD9FF"
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <line x1="23" y1="9" x2="17" y2="15" />
-                    <line x1="17" y1="9" x2="23" y2="15" />
-                  </svg>
-                ) : (
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="40"
-                    height="40"
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="#049FD9FF"
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                  </svg>
-                )}
+                전송
               </button>
+            </div> */}
+          </div>
+  
+          {/* Right sub-column */}
+          <div className="left-sub-column right">
+            <div className="combined-response-area">
+              <div className="realtime-text-container">
+                <div className="realtime-text">
+                  {realtimeText || userMessage}
+                  {realtimeText && <span className="recording-indicator">●</span>}
+                </div>
+              </div>
+              {renderResponse()}
             </div>
           </div>
-          
-          <div className="voice-control">
-            <ReactMic
-              record={isRecording}
-              className="sound-wave"
-              onStop={stopRecording}
-              strokeColor="#049FD9FF"
-              backgroundColor="#ffffff"
-            />
-            <div className="voice-buttons">
-              <button
-                onClick={isRecording ? stopRecording : startRecording}
-                className={`voice-button toggle-record ${isRecording ? 'recording' : ''}`}
-                disabled={isSpeaking}
-              >
-                {isRecording ? (
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="40" 
-                    height="40" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="white"
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <rect x="6" y="4" width="12" height="16" rx="2" ry="2" />
-                  </svg>
-                ) : (
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="40" 
-                    height="40" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="white"
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                    <line x1="12" y1="19" x2="12" y2="22" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-
-          <div className="realtime-text-container">
-            <div className="realtime-text">
-              {realtimeText || userMessage}
-              {realtimeText && <span className="recording-indicator">●</span>}
-            </div>
-          </div>
-
-          {renderResponse()}
-
-          {/* <div className="text-input-container">
-            <input
-              type="text"
-              value={userMessage}
-              onChange={(e) => setUserMessage(e.target.value)}
-              placeholder="질문을 입력하세요..."
-              className="text-input"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && userMessage.trim()) {
-                  sendMessageToAPI(userMessage);
-                  setUserMessage('');
-                }
-              }}
-            />
-            <button
-              onClick={() => {
-                if (userMessage.trim()) {
-                  sendMessageToAPI(userMessage);
-                  setUserMessage('');
-                }
-              }}
-              className="send-button"
-              disabled={!userMessage.trim()}
-            >
-              전송
-            </button>
-          </div> */}
         </div>
-
-        {/* Right column (30%) */}
+  
+        {/* Right column */}
         <div className="right-column">
           <div className="info-area">
+            <h2 className="bus-info-title">버스 도착 정보</h2>
             <div className="bus-info">
               {busInfo.success && busInfo.buses.length > 0 ? (
                 <div className="bus-list">
@@ -881,19 +846,15 @@ function BusStop() {
               )}
             </div>
           </div>
-
           <div className="emergency-button-container">
-            <button
-              onClick={handleEmergency}
-              className="emergency-button"
-            >
+            <button onClick={handleEmergency} className="emergency-button">
               관리자 호출
             </button>
           </div>
         </div>
       </div>
-
-      {/* Other components that should remain outside the columns */}
+  
+      {/* Other components */}
       {showMap && mapData && (
         <div className="map-overlay">
           <Map
@@ -906,10 +867,10 @@ function BusStop() {
           </button>
         </div>
       )}
-
+  
       {isEmergency && (
         <div className="emergency-overlay" onClick={handleCloseEmergency}>
-          <div className="emergency-modal" onClick={e => e.stopPropagation()}>
+          <div className="emergency-modal" onClick={(e) => e.stopPropagation()}>
             <h2>비상 버튼이 눌렸습니다!</h2>
             <h2>관리자와 연락 시도중이니 잠시만 기다려 주십시오</h2>
           </div>
