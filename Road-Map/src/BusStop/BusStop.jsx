@@ -15,7 +15,7 @@ import ciscoLogo from "./cisco_logo.png";
 import OpenAI from 'openai';
 
 // API 기본 URL 설정
-const API_BASE_URL = "http://localhost:9000";
+const API_BASE_URL = "http://localhost:9000"; // 실제 API 서버 URL로 변경 필요
 
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -75,9 +75,13 @@ function BusStop() {
     const fetchBusData = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/bus`);
+        console.log("버스 데이터:", response.data);
+        
+        // 도착 시간 순으로 정렬하고 최대 3개만 선택
         const sortedBuses = response.data
           .sort((a, b) => a.arrival_minutes - b.arrival_minutes)
           .slice(0, 3);
+
         setBusInfo({
           buses: sortedBuses,
           success: true
@@ -90,7 +94,6 @@ function BusStop() {
         });
       }
     };
-
     fetchBusData();
     const busInterval = setInterval(fetchBusData, 30000);
     return () => clearInterval(busInterval);
@@ -165,7 +168,7 @@ function BusStop() {
 
     setIsRecording(true);
     isRecordingRef.current = true;
-    setRealtimeText("녹음 중...");
+    setRealtimeText("듣는 중입니다...");
     setUserMessage("");
   };
 
@@ -187,7 +190,7 @@ function BusStop() {
     formData.append("audio", audioBlob, "audio.wav");
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/stt`, formData, {
+      const response = await axios.post(`https://c1ab-58-230-197-51.ngrok-free.app/speech-to-text`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -355,7 +358,7 @@ function BusStop() {
       return (
         <div className="response-container">
           <p className="initial-message">
-            {isRecording ? "녹음 중입니다..." : "대화 시작 버튼을 누르고 말씀해주세요!"}
+            {isRecording ? "듣는 중입니다..." : "대화 시작 버튼을 누르고 말씀해주세요!"}
           </p>
         </div>
       );
