@@ -217,7 +217,7 @@ function BusStop() {
       sendMessageToAPI(text); // STT에서 받은 텍스트를 챗봇에 전송
     } catch (error) {
       console.error("STT Error:", error);
-      setRealtimeText("음성 인식에 실패했습니다.");
+      setRealtimeText("안녕하세요, 오늘은 어디 가시나요?");
     }
   };
 
