@@ -365,6 +365,7 @@
   .response-container p {
     font-weight: normal;
     font-size: 1.2rem;
+    text-align: center;
     color: black; /* 텍스트 색상을 검정색으로 변경 */
   }
   
@@ -1000,4 +1001,10 @@
     color: #049FD9FF;
     font-weight: bold;
     animation: blink-animation 1.5s infinite;
+  }
+
+  .voice-status {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    transition: color 0.3s ease;
   }

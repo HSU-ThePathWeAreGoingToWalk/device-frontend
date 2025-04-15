@@ -58,6 +58,13 @@ function BusStop() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [inputText, setInputText] = useState(""); // 텍스트 입력용 상태
 
+    // 음성 감지 상태 추가
+    const [isVoiceDetected, setIsVoiceDetected] = useState(false);
+    const silenceTimer = useRef(null);
+    const audioContextRef = useRef(null);
+    const analyserRef = useRef(null);
+    const dataArrayRef = useRef(null);
+
   const CURRENT_LOCATION = {
     lng: 127.29453611111111,
     lat: 34.620875
@@ -67,6 +74,63 @@ function BusStop() {
   // isRecording 상태 변경 시 ref도 업데이트
   useEffect(() => {
     isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  // Web Audio API 초기화
+  useEffect(() => {
+    if (isRecording && !audioContextRef.current) {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = audioContext;
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+      analyserRef.current = analyser;
+      dataArrayRef.current = new Float32Array(analyser.fftSize);
+
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          const source = audioContext.createMediaStreamSource(stream);
+          source.connect(analyser);
+        })
+        .catch(err => console.error("음성 입력 장치 오류:", err));
+    } else if (!isRecording && audioContextRef.current) {
+      // 필요하다면 정리 작업 수행
+      // audioContextRef.current.close();
+      // audioContextRef.current = null;
+    }
+  }, [isRecording]);
+
+  const analyzeAudio = () => {
+    if (analyserRef.current && dataArrayRef.current) {
+      analyserRef.current.getFloatTimeDomainData(dataArrayRef.current);
+      let sum = 0;
+      for (let i = 0; i < dataArrayRef.current.length; i++) {
+        sum += Math.abs(dataArrayRef.current[i]);
+      }
+      const average = sum / dataArrayRef.current.length;
+      const amplitude = average; // 평균 진폭
+
+      if (amplitude > 0.01) { // 진폭 임계값 조정 필요
+        setIsVoiceDetected(true);
+        if (silenceTimer.current) {
+          clearTimeout(silenceTimer.current);
+        }
+        silenceTimer.current = setTimeout(() => {
+          if (isRecordingRef.current) {
+            stopRecording();
+          }
+        }, 1500); // 1.5초 침묵 후 녹음 중지
+      }
+    }
+  };
+
+  useEffect(() => {
+    let intervalId;
+    if (isRecording) {
+      intervalId = setInterval(analyzeAudio, 100); // 100ms마다 분석
+    } else if (intervalId) {
+      clearInterval(intervalId);
+    }
+    return () => clearInterval(intervalId);
   }, [isRecording]);
 
   const updateTime = () => {
@@ -162,14 +226,17 @@ function BusStop() {
         setIsSpeaking(false);
         // TTS 종료 후 음소거 상태가 아니면 자동으로 녹음 시작
         if (!isMuted) {
-           setTimeout(() => {
-             // isSpeaking 상태가 false로 확실히 업데이트 된 후 녹음 시작
-             // isRecordingRef.current가 여전히 false인지 다시 확인
-             if (!isRecordingRef.current) {
-                 startRecording();
-             }
-           }, 300); // 약간의 딜레이 추가
+          startRecordingWithDelay();
         }
+        // if (!isMuted) {
+        //    setTimeout(() => {
+        //      // isSpeaking 상태가 false로 확실히 업데이트 된 후 녹음 시작
+        //      // isRecordingRef.current가 여전히 false인지 다시 확인
+        //      if (!isRecordingRef.current) {
+        //          startRecording();
+        //      }
+        //    }, 300); // 약간의 딜레이 추가
+        // }
       };
     } catch (error) {
       console.error('OpenAI TTS 에러:', error);
@@ -199,25 +266,22 @@ function BusStop() {
 
   // 녹음 시작
   const startRecording = () => {
-    // 말하는 중이거나 이미 녹음 중이면 시작하지 않음
     if (isSpeaking || isRecordingRef.current) return;
 
-    console.log("녹음 시작 요청");
+    console.log("녹음 시작");
     setIsRecording(true);
-    // isRecordingRef.current = true; // useEffect로 처리됨
-    setRealtimeText("듣는 중입니다...");
-    setUserMessage(""); // 이전 메시지 초기화
+    setIsVoiceDetected(false);
+    setRealtimeText("말씀해주세요...");
+    setUserMessage("");
   };
 
-  // 녹음 중지
+  // 녹음 중지 시 자동 재시작 로직 개선
   const stopRecording = () => {
-    // 녹음 중이 아니면 중지하지 않음
     if (!isRecordingRef.current) return;
 
-    console.log("녹음 중지 요청");
+    console.log("녹음 중지");
     setIsRecording(false);
-    // isRecordingRef.current = false; // useEffect로 처리됨
-    setRealtimeText(""); // 상태 메시지 초기화
+    setRealtimeText("처리 중...");
   };
 
   // ReactMic 녹음 완료 콜백 -> OpenAI STT 호출
@@ -263,31 +327,31 @@ function BusStop() {
       setUserMessage(transcribedText); // 인식된 텍스트 상태 업데이트 (화면에 표시)
       setRealtimeText(transcribedText); // 실시간 텍스트 영역에도 표시
 
-      if (transcribedText && transcribedText.trim().length > 0) {
-        sendMessageToAPI(transcribedText); // 인식된 텍스트를 챗봇 API로 전송
+      if (transcribedText) {
+        await sendMessageToAPI(transcribedText);
       } else {
-        setRealtimeText("인식된 텍스트가 없습니다.");
-         // 녹음 재시작 로직 (선택적)
-         if (!isMuted && !isSpeaking) {
-           setTimeout(() => {
-             if (!isRecordingRef.current) startRecording();
-           }, 1000);
-         }
+        setRealtimeText("다시 말씀해주세요");
+        startRecordingWithDelay(); // 오류 시 재시도
       }
-
     } catch (error) {
       console.error("OpenAI STT Error:", error);
       setRealtimeText("음성 인식 중 오류가 발생했습니다.");
-      // 에러 발생 시 녹음 재시작 로직 (선택적)
-       if (!isMuted && !isSpeaking) {
-         setTimeout(() => {
-           if (!isRecordingRef.current) startRecording();
-         }, 1000);
-       }
+      startRecordingWithDelay(); // 오류 시 재시도
     } finally {
       setIsTranscribing(false); // 음성 인식 종료 상태
     }
   };
+
+    // 자동 재녹음 함수
+    const startRecordingWithDelay = () => {
+      if (!isMuted && !isSpeaking) {
+        setTimeout(() => {
+          if (!isRecordingRef.current) {
+            startRecording();
+          }
+        }, 2000); // 2초 후 재시도
+      }
+    };
 
   // 사용 안 함: 외부 STT 서버 호출 함수 제거
   // const sendAudioToSTT = async (audioBlob) => { ... }
@@ -555,6 +619,7 @@ function BusStop() {
     }
   };
 
+
   // 긴급 호출 (기존 로직 유지)
   const handleEmergency = async () => {
     try {
@@ -695,12 +760,19 @@ function BusStop() {
               {/* ReactMic 컴포넌트: 시각화 역할만 하도록 설정 가능 */}
               <ReactMic
                 record={isRecording}
-                className="sound-wave" // CSS 클래스 확인
-                onStop={onStopRecording} // 녹음 중지 시 STT 호출 트리거
+                className="sound-wave"
+                onStop={onStopRecording}
+                // onData 콜백 수정: Web Audio API를 사용하여 진폭 분석
+                onData={() => {
+                  // Web Audio API를 사용하여 analyzeAudio 함수에서 진폭 분석
+                }}
                 strokeColor="#049FD9FF"
                 backgroundColor="#ffffff"
-                visualSetting="frequencyBars" // 또는 "sinewave"
-                // strokeWidth={15} // frequencyBars 사용 시 불필요할 수 있음
+                visualSetting="frequencyBars"
+                mimeType="audio/wav"
+                echoCancellation={true}
+                autoGainControl={true}
+                noiseSuppression={true}
               />
               <div className="voice-buttons">
                 {/* 녹음 시작/중지 버튼 */}
