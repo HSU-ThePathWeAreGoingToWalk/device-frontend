@@ -14,6 +14,9 @@ import { v4 as uuidv4 } from "uuid";
 import ciscoLogo from "./cisco_logo.png";
 import OpenAI from 'openai';
 
+// API 기본 URL 설정
+const API_BASE_URL = "http://localhost:9000";
+
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true,
@@ -22,7 +25,6 @@ const openai = new OpenAI({
 function BusStop() {
   const audioRef = useRef(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
-
   const [currentTime, setCurrentTime] = useState("");
   const [isDay, setIsDay] = useState(true);
   const [weatherData, setWeatherData] = useState({ dust: "좋음", temperature: "17" });
@@ -32,7 +34,7 @@ function BusStop() {
     success: false
   });
   const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null); // 녹음된 오디오 데이터
   const [userMessage, setUserMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userQuestion, setUserQuestion] = useState("");
@@ -46,8 +48,6 @@ function BusStop() {
   const [showMap, setShowMap] = useState(false);
   const [mapData, setMapData] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [displayedText, setDisplayedText] = useState("");
-  // 새로운 상태: 텍스트 입력 관리
   const [inputText, setInputText] = useState("");
 
   const CURRENT_LOCATION = {
@@ -56,7 +56,6 @@ function BusStop() {
   };
 
   const isRecordingRef = useRef(isRecording);
-  const userMessageRef = useRef(userMessage);
 
   const updateTime = () => {
     const now = new Date();
@@ -75,13 +74,10 @@ function BusStop() {
   useEffect(() => {
     const fetchBusData = async () => {
       try {
-        const response = await axios.get("http://localhost:9000/bus");
-        console.log("버스 데이터:", response.data);
-        
+        const response = await axios.get(`${API_BASE_URL}/bus`);
         const sortedBuses = response.data
           .sort((a, b) => a.arrival_minutes - b.arrival_minutes)
           .slice(0, 3);
-
         setBusInfo({
           buses: sortedBuses,
           success: true
@@ -100,64 +96,11 @@ function BusStop() {
     return () => clearInterval(busInterval);
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const recognizer = new SpeechRecognition();
-        recognizer.lang = 'ko-KR';
-        recognizer.continuous = true;
-        recognizer.interimResults = true;
-
-        recognizer.onstart = () => {
-          console.log('음성 인식 시작...');
-          setRealtimeText("");
-          setIsRecording(true);
-          isRecordingRef.current = true;
-          setUserQuestion("");
-        };
-
-        recognizer.onresult = (event) => {
-          const lastResult = event.results[event.results.length - 1];
-          const currentText = lastResult[0].transcript;
-          
-          console.log('인식된 텍스트:', currentText);
-          setRealtimeText(currentText);
-          
-          if (lastResult.isFinal) {
-            setUserMessage(currentText);
-            sendMessageToAPI(currentText);
-            setRealtimeText("");
-            
-            if (recognition) {
-              recognition.stop();
-              recognition.start();
-            }
-          }
-        };
-
-        recognizer.onerror = (event) => {
-          console.error('음성 인식 오류:', event.error);
-          setIsRecording(false);
-          isRecordingRef.current = false;
-        };
-
-        recognizer.onend = () => {
-          console.log('음성 인식 종료');
-          setIsRecording(false);
-          isRecordingRef.current = false;
-        };
-
-        setRecognition(recognizer);
-      }
-    }
-  }, []);
-
   const speakText = async (text) => {
     if (isMuted) return;
 
     try {
-      if (recognition && isRecordingRef.current) {
+      if (isRecordingRef.current) {
         stopRecording();
       }
       setIsSpeaking(true);
@@ -218,46 +161,61 @@ function BusStop() {
   };
 
   const startRecording = () => {
-    if (!recognition || isSpeaking || isRecordingRef.current) return;
+    if (isSpeaking || isRecordingRef.current) return;
 
-    try {
-      setDisplayedText("");
-      setIsRecording(true);
-      isRecordingRef.current = true;
-      recognition.start();
-    } catch (error) {
-      console.error("Speech recognition error:", error);
-      setIsRecording(false);
-      isRecordingRef.current = false;
-    }
+    setIsRecording(true);
+    isRecordingRef.current = true;
+    setRealtimeText("녹음 중...");
+    setUserMessage("");
   };
 
   const stopRecording = () => {
-    if (!recognition || !isRecordingRef.current) return;
+    if (!isRecordingRef.current) return;
+
+    setIsRecording(false);
+    isRecordingRef.current = false;
+    setRealtimeText("");
+  };
+
+  const onStopRecording = (recordedBlob) => {
+    setAudioBlob(recordedBlob.blob);
+    sendAudioToSTT(recordedBlob.blob);
+  };
+
+  const sendAudioToSTT = async (audioBlob) => {
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "audio.wav");
 
     try {
-      recognition.stop();
-      setIsRecording(false);
-      isRecordingRef.current = false;
+      const response = await axios.post(`${API_BASE_URL}/stt`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      const text = response.data.text; // STT 서버가 { text: "..." } 형태로 응답한다고 가정
+      setUserMessage(text);
+      setRealtimeText(text);
+      sendMessageToAPI(text); // STT에서 받은 텍스트를 챗봇에 전송
     } catch (error) {
-      console.error("Speech recognition stop error:", error);
+      console.error("STT Error:", error);
+      setRealtimeText("음성 인식에 실패했습니다.");
     }
   };
 
   const sendMessageToAPI = async (message) => {
     setIsLoading(true);
     setUserQuestion(message);
-  
+
     try {
-      const response = await axios.post("http://localhost:9000/chat", {
+      const response = await axios.post(`${API_BASE_URL}/chat`, {
         message: message
       });
-  
+
       const data = response.data;
       console.log("Server Response:", data);
-  
+
       let responseText = '';
-  
+
       if (data.places && data.coordinates) {
         setResponseType('location');
         setResponseData({
@@ -294,14 +252,14 @@ function BusStop() {
         });
         responseText = data.response || data.conversation_response;
       }
-      
+
       if (!isMuted && responseText) {
         await speakText(responseText);
       }
-  
+
       setUserMessage("");
       setRealtimeText("");
-      
+
     } catch (error) {
       console.error("Error:", error);
       setResponseType('notice');
@@ -314,6 +272,7 @@ function BusStop() {
     }
   };
 
+  // 기존 컴포넌트들(LocationComponent, RouteComponent 등)은 그대로 유지
   const LocationComponent = ({ data }) => (
     <div className="response-card location">
       {data.coordinates && (
@@ -328,7 +287,6 @@ function BusStop() {
           />
         </div>
       )}
-      
       <ul>
         {data.places.map((place, index) => (
           <li key={index}>✅ {place}</li>
@@ -347,18 +305,15 @@ function BusStop() {
           />
         </div>
       )}
-      
       <div className="route-details">
         <p><strong>🚶 이동 경로:</strong></p>
         {data.routes_text.split('\n').map((step, index) => (
-          <div key={index} className="route-step">
-            {step}
-          </div>
+          <div key={index} className="route-step">{step}</div>
         ))}
       </div>
     </div>
   );
-  
+
   const BusComponent = ({ data }) => (
     <div className="response-card bus">
       <p>{data.conversation_response}</p>
@@ -386,7 +341,7 @@ function BusStop() {
       )}
     </div>
   );
-  
+
   const NoticeComponent = ({ data }) => (
     <div className="response-card notice">
       <p className={data.response === "안녕하세요, 오늘은 어디 가시나요?" ? "greeting-text" : ""}>
@@ -395,114 +350,36 @@ function BusStop() {
     </div>
   );
 
-// renderResponse 함수 수정
-const renderResponse = () => {
-  if (!responseData) {
+  const renderResponse = () => {
+    if (!responseData) {
+      return (
+        <div className="response-container">
+          <p className="initial-message">
+            {isRecording ? "녹음 중입니다..." : "대화 시작 버튼을 누르고 말씀해주세요!"}
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="response-container">
-        <p className="initial-message">
-          {isRecording ? "듣는 중입니다..." : "대화 시작 버튼을 누르고 무엇이든 물어보세요!"}
-        </p>
+        <div className="bot-response">
+          {isLoading ? (
+            <div className="loading-indicator">
+              <div className="spinner"></div>
+              <div className="loading-text">답변을 준비 중입니다...</div>
+            </div>
+          ) : (
+            <>
+              {responseType === 'location' && <LocationComponent data={responseData} />}
+              {responseType === 'route' && <RouteComponent data={responseData} />}
+              {responseType === 'bus' && <BusComponent data={responseData} />}
+              {responseType === 'notice' && <NoticeComponent data={responseData} />}
+            </>
+          )}
+        </div>
       </div>
     );
-  }
-
-  return (
-    <div className="response-container">
-      <div className="bot-response">
-        {isLoading ? (
-          <div className="loading-indicator">
-            <div className="spinner"></div>
-            <div className="loading-text">답변을 준비 중입니다...</div>
-          </div>
-        ) : (
-          <>
-            {responseType === 'location' && <LocationComponent data={responseData} />}
-            {responseType === 'route' && <RouteComponent data={responseData} />}
-            {responseType === 'bus' && <BusComponent data={responseData} />}
-            {responseType === 'notice' && <NoticeComponent data={responseData} />}
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-  const MapComponent = ({ data }) => {
-    const mapRef = useRef(null);
-  
-    useEffect(() => {
-      if (!window.kakao || !mapRef.current || !data) return;
-  
-      const map = new window.kakao.maps.Map(mapRef.current, {
-        center: new window.kakao.maps.LatLng(data.coordinates[0][1], data.coordinates[0][0]),
-        level: 3
-      });
-  
-      if (data.type === 'location') {
-        const currentLocationMarker = new window.kakao.maps.Marker({
-          position: new window.kakao.maps.LatLng(CURRENT_LOCATION.lat, CURRENT_LOCATION.lng),
-          image: new window.kakao.maps.MarkerImage(
-            'https://www.pngall.com/wp-content/uploads/2017/05/Map-Marker-Free-Download-PNG.png',
-            new window.kakao.maps.Size(40, 40),
-            { offset: new window.kakao.maps.Point(20, 40) }
-          )
-        });
-        currentLocationMarker.setMap(map);
-
-        const currentInfowindow = new window.kakao.maps.InfoWindow({
-          content: '<div style="padding:5px; font-weight:bold;">현재 위치</div>'
-        });
-        currentInfowindow.open(map, currentLocationMarker);
-
-        data.coordinates.forEach((coord, idx) => {
-          if (idx === 0 && coord[1] === CURRENT_LOCATION.lat && coord[0] === CURRENT_LOCATION.lng) return;
-          
-          const marker = new window.kakao.maps.Marker({
-            position: new window.kakao.maps.LatLng(coord[1], coord[0])
-          });
-          marker.setMap(map);
-  
-          if (data.places[idx]) {
-            const infowindow = new window.kakao.maps.InfoWindow({
-              content: `<div style="padding:5px;">${data.places[idx]}</div>`
-            });
-            infowindow.open(map, marker);
-          }
-        });
-      } else if (data.type === 'route') {
-        const path = data.coordinates.map(coord => 
-          new window.kakao.maps.LatLng(coord[1], coord[0])
-        );
-        const polyline = new window.kakao.maps.Polyline({
-          path: path,
-          strokeWeight: 5,
-          strokeColor: '#FF0000',
-          strokeOpacity: 0.7
-        });
-        polyline.setMap(map);
-  
-        const startMarker = new window.kakao.maps.Marker({
-          position: path[0]
-        });
-        const endMarker = new window.kakao.maps.Marker({
-          position: path[path.length - 1]
-        });
-        startMarker.setMap(map);
-        endMarker.setMap(map);
-      }
-  
-      const bounds = new window.kakao.maps.LatLngBounds();
-      if (data.type === 'location') {
-        bounds.extend(new window.kakao.maps.LatLng(CURRENT_LOCATION.lat, CURRENT_LOCATION.lng));
-      }
-      data.coordinates.forEach(coord => {
-        bounds.extend(new window.kakao.maps.LatLng(coord[1], coord[0]));
-      });
-      map.setBounds(bounds);
-    }, [data]);
-  
-    return <div ref={mapRef} style={{ width: '100%', height: '400px' }} />;
   };
 
   const refreshPage = () => {
@@ -515,7 +392,6 @@ const renderResponse = () => {
 
   const startGreetingSequence = async () => {
     const greetingText = "안녕하세요, 오늘은 어디 가시나요?";
-    
     setResponseType('notice');
     setResponseData({
       response: greetingText,
@@ -525,7 +401,6 @@ const renderResponse = () => {
     try {
       await speakText(greetingText);
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
       setTimeout(() => {
         if (!isRecordingRef.current) {
           startRecording();
@@ -543,8 +418,8 @@ const renderResponse = () => {
         audioRef.current = null;
       }
 
-      if (recognition && isRecordingRef.current) {
-        recognition.stop();
+      if (isRecordingRef.current) {
+        stopRecording();
       }
 
       setIsRecording(false);
@@ -566,7 +441,7 @@ const renderResponse = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:9000/emergency",
+        `${API_BASE_URL}/emergency`,
         emergencyData,
         {
           headers: {
@@ -576,13 +451,11 @@ const renderResponse = () => {
       );
 
       console.log("Emergency response:", response.data);
-
       setIsRefreshing(true);
       setTimeout(() => {
         setIsRefreshing(false);
         setIsEmergency(true);
       }, 1000);
-
     } catch (error) {
       console.error("Emergency alert failed:", error);
       setIsEmergency(true);
@@ -593,35 +466,16 @@ const renderResponse = () => {
     setIsEmergency(false);
   };
 
-  const handleTTS = async (text) => {
-    try {
-      if (!process.env.REACT_APP_OPENAI_API_KEY) {
-        throw new Error('OpenAI API key is not configured');
-      }
-
-      const response = await openai.audio.speech.create({
-        model: "tts-1",
-        voice: "alloy",
-        input: text,
-      });
-    } catch (error) {
-      console.error('OpenAI TTS Error:', error);
-    }
-  };
-
-  // 텍스트 입력 핸들러
   const handleInputChange = (e) => {
     setInputText(e.target.value);
   };
 
-  // 전송 버튼 클릭 핸들러
   const handleSendMessage = () => {
-    if (inputText.trim() === "") return; // 빈 입력 방지
+    if (inputText.trim() === "") return;
     sendMessageToAPI(inputText);
-    setInputText(""); // 입력 필드 초기화
+    setInputText("");
   };
 
-  // Enter 키로 전송 가능하도록
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSendMessage();
@@ -632,11 +486,7 @@ const renderResponse = () => {
     <div className="app-container">
       {/* Status Bar */}
       <div className="status-bar">
-        <img 
-          src={ciscoLogo} 
-          alt="Cisco Logo" 
-          className="cisco-logo"
-        />
+        <img src={ciscoLogo} alt="Cisco Logo" className="cisco-logo" />
         <div className="time">
           {isDay ? (
             <svg className="sun-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -684,12 +534,11 @@ const renderResponse = () => {
           <div className="temperature">온도: {weatherData.temperature}°C</div>
         </div>
       </div>
-  
+
       {/* Main content */}
       <div className="main-content">
         {/* Left column */}
         <div className="left-column">
-          {/* Left sub-column */}
           <div className="left-sub-column left">
             <div className="character-area">
               <img
@@ -698,12 +547,12 @@ const renderResponse = () => {
                 className="character-image"
               />
             </div>
-  
+
             <div className="voice-control">
               <ReactMic
                 record={isRecording}
                 className="sound-wave"
-                onStop={stopRecording}
+                onStop={onStopRecording} // 녹음 종료 시 호출
                 strokeColor="#049FD9FF"
                 backgroundColor="#ffffff"
                 strokeWidth={15}
@@ -787,41 +636,21 @@ const renderResponse = () => {
                 </button>
               </div>
             </div>
-
-            {/* 텍스트 입력 필드와 전송 버튼 추가 */}
-            {/* <div className="text-input-container">
-              <input
-                type="text"
-                className="text-input"
-                value={inputText}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                placeholder="텍스트로 질문 입력..."
-              />
-              <button
-                onClick={handleSendMessage}
-                className="send-button"
-                disabled={isLoading || inputText.trim() === ""}
-              >
-                전송
-              </button>
-            </div> */}
           </div>
-  
-          {/* Right sub-column */}
+
           <div className="left-sub-column right">
             <div className="combined-response-area">
               <div className="realtime-text-container">
                 <div className="realtime-text">
                   {realtimeText || userMessage}
-                  {realtimeText && <span className="recording-indicator">●</span>}
+                  {isRecording && <span className="recording-indicator">●</span>}
                 </div>
               </div>
               {renderResponse()}
             </div>
           </div>
         </div>
-  
+
         {/* Right column */}
         <div className="right-column">
           <div className="info-area">
@@ -832,12 +661,8 @@ const renderResponse = () => {
                   {busInfo.buses.map((bus, index) => (
                     <div key={index} className="bus-item">
                       <div className="bus-number">{bus.bus_number}번</div>
-                      <div className="arrival-time">
-                        {bus.arrival_minutes}분 후 도착
-                      </div>
-                      <div className="prev-count">
-                        {bus.prev_count}정거장 전
-                      </div>
+                      <div className="arrival-time">{bus.arrival_minutes}분 후 도착</div>
+                      <div className="prev-count">{bus.prev_count}정거장 전</div>
                     </div>
                   ))}
                 </div>
@@ -853,8 +678,7 @@ const renderResponse = () => {
           </div>
         </div>
       </div>
-  
-      {/* Other components */}
+
       {showMap && mapData && (
         <div className="map-overlay">
           <Map
@@ -867,7 +691,7 @@ const renderResponse = () => {
           </button>
         </div>
       )}
-  
+
       {isEmergency && (
         <div className="emergency-overlay" onClick={handleCloseEmergency}>
           <div className="emergency-modal" onClick={(e) => e.stopPropagation()}>
