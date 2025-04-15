@@ -99,6 +99,22 @@ function BusStop() {
     return () => clearInterval(busInterval);
   }, []);
 
+  useEffect(() => {
+    // SSE 연결 설정
+    const eventSource = new EventSource('http://localhost:3001/greeting-events');
+
+    eventSource.addEventListener('greeting', (e) => {
+      const data = JSON.parse(e.data);
+      if (data.action === 'start') {
+        startGreetingSequence();
+      }
+    });
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   const speakText = async (text) => {
     if (isMuted) return;
 
