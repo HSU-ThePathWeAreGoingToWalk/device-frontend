@@ -109,7 +109,7 @@ function BusStop() {
       const average = sum / dataArrayRef.current.length;
       const amplitude = average; // 평균 진폭
 
-      if (amplitude > 0.01) { // 진폭 임계값 조정 필요
+      if (amplitude > 0.05) { // 진폭 임계값 조정 필요
         setIsVoiceDetected(true);
         if (silenceTimer.current) {
           clearTimeout(silenceTimer.current);
