@@ -19,9 +19,11 @@
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.4",
     "express": "^5.1.0",
+    "localtunnel": "^2.0.2",
     "openai": "^4.93.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "react-mic": "^12.4.6",
     "react-scripts": "^5.0.1",
     "web-vitals": "^4.2.4"

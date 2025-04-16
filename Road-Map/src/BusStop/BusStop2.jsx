@@ -10,14 +10,13 @@ import axios from "axios";
 // import shipImg from "./ship.png";
 // import walkingImg from "./walking.png";
 import Map from '../components/Map/Map.tsx';
-// import { v4 as uuidv4 } from "uuid"; // uuidv4는 코드에서 사용되지 않아 주석 처리
+import { v4 as uuidv4 } from "uuid";
 import ciscoLogo from "./cisco_logo.png";
 import OpenAI from 'openai';
-import ReactMarkdown from 'react-markdown'; // ReactMarkdown import 추가
 
 // API 기본 URL 설정
-const API_BASE_URL = "https://fuzzy-steaks-wear.loca.lt";
-const API_BASE_URL_MANAGER = "https://90e0-58-230-197-51.ngrok-free.app" // 실제 API 서버 URL로 변경 필요
+const API_BASE_URL = "https://wise-pots-clean.loca.lt";
+const API_BASE_URL_MANAGER = "" // 실제 API 서버 URL로 변경 필요
 
 // --- OpenAI 클라이언트 초기화 ---
 // !!! 보안 경고 !!!
@@ -28,7 +27,22 @@ const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY, // .env 파일에 REACT_APP_OPENAI_API_KEY=your_key 형식으로 저장
   dangerouslyAllowBrowser: true, // 프로덕션 환경에서는 절대 사용 금지!
 });
-// --- OpenAI 클라이언트 초기화 끝 ---
+// — OpenAI 클라이언트 초기화 끝 —
+
+// URL을 하이퍼링크로 변환하는 함수
+const convertUrlsToLinks = (text) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.split(urlRegex).map((part, i) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
 
 // 모달 컴포넌트
 const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
@@ -77,7 +91,6 @@ const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => 
   );
 };
 
-
 function BusStop() {
   const audioRef = useRef(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -106,8 +119,6 @@ function BusStop() {
   const [mapData, setMapData] = useState(null); // 사용하지 않는 상태인 것 같아 확인 필요
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [inputText, setInputText] = useState(""); // 텍스트 입력용 상태
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [linkModalUrl, setLinkModalUrl] = useState('');
 
     // 음성 감지 상태 추가
     const [isVoiceDetected, setIsVoiceDetected] = useState(false);
@@ -228,7 +239,7 @@ function BusStop() {
 
   // SSE 인사 메시지 (기존 로직 유지)
   useEffect(() => {
-    const eventSource = new EventSource('https://public-cougars-smell.loca.lt/greeting-events');
+    const eventSource = new EventSource('http://localhost:3001/greeting-events');
     eventSource.addEventListener('greeting', (e) => {
       const data = JSON.parse(e.data);
       if (data.action === 'start') {
@@ -322,7 +333,7 @@ function BusStop() {
     console.log("녹음 시작");
     setIsRecording(true);
     setIsVoiceDetected(false);
-    setRealtimeText("말씀해주세요...");
+    setRealtimeText("말씀해주세요…");
     setUserMessage("");
   };
 
@@ -332,7 +343,7 @@ function BusStop() {
 
     console.log("녹음 중지");
     setIsRecording(false);
-    setRealtimeText("처리 중...");
+    setRealtimeText("처리 중…");
   };
 
   // ReactMic 녹음 완료 콜백 -> OpenAI STT 호출
@@ -500,13 +511,7 @@ function BusStop() {
     }
   };
 
-  const openLinkInModal = (url) => (event) => {
-    event.preventDefault();
-    setLinkModalUrl(url);
-    setIsLinkModalOpen(true);
-  };
-
-  // --- 컴포넌트 렌더링 함수들 (기존과 동일) ---
+  // — 컴포넌트 렌더링 함수들 (기존과 동일) —
   const LocationComponent = ({ data }) => (
     <div className="response-card location">
       {data.coordinates && (
@@ -514,10 +519,10 @@ function BusStop() {
           <Map
             coordinates={[
               [CURRENT_LOCATION.lng, CURRENT_LOCATION.lat],
-              ...data.coordinates
+              …data.coordinates
             ]}
             type="location"
-            places={["현재 위치", ...data.places]}
+            places={["현재 위치", …data.places]}
           />
         </div>
       )}
@@ -548,86 +553,63 @@ function BusStop() {
     </div>
   );
 
-
-  const BusComponent = ({ data }) => {
-    console.log("BusComponent received data:", data);
-    return (
-      <div className="response-card bus">
-        <p>{data.conversation_response}</p>
-        <table>
-          <thead>
-            <tr>
-              <th>버스 번호</th>
-              <th>예상 도착 시간</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.arrival_times && data.arrival_times.map((bus, index) => {
-              console.log("Bus item in arrival_times:", bus);
-              let arrivalTime;
-              if (typeof bus === 'object' && bus !== null) {
-                // 백엔드 응답에 맞춰 '도착시간(분)' 속성 사용
-                if (bus['도착시간(분)'] !== undefined) {
-                  arrivalTime = `${bus['도착시간(분)']}분`;
-                } else if (bus.expectedArrival !== undefined) {
-                  arrivalTime = `${bus.expectedArrival}분`;
-                } else if (bus.arrival !== undefined) {
-                  arrivalTime = `${bus.arrival}분`;
-                } else if (bus.arrivalTime !== undefined) {
-                  arrivalTime = `${bus.arrivalTime}분`;
-                } else if (typeof bus.minutes === 'number') {
-                  arrivalTime = `${bus.minutes}분`;
-                }
-                else {
-                  console.warn("Bus object missing arrival time info:", bus);
-                  arrivalTime = "정보 없음";
-                }
-              } else if (typeof bus === 'number') {
-                arrivalTime = `${bus}분`;
+  const BusComponent = ({ data }) => (
+    <div className="response-card bus">
+      {/* <p>{data.conversation_response}</p> conversation_response는 TTS로 처리 */}
+      <table>
+        <thead>
+          <tr>
+            <th>버스 번호</th>
+            <th>예상 도착 시간</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.arrival_times && data.arrival_times.map((bus, index) => {
+            let arrivalTime;
+            if (typeof bus === 'object' && bus !== null) {
+              // 객체인 경우 'expectedArrival' 속성이 있는지 확인하고, 없다면 다른 속성(예: 'arrival')을 확인
+              if (bus.expectedArrival !== undefined) {
+                arrivalTime = `${bus.expectedArrival}분`;
+              } else if (bus.arrival !== undefined) {
+                arrivalTime = `${bus.arrival}분`;
               } else {
-                console.warn("Unexpected bus arrival time format:", bus);
-                arrivalTime = "정보 없음";
+                // 객체이지만 예상 도착 시간 정보가 없는 경우 로그를 남기거나 기본값 설정
+                console.warn("Bus object missing arrival time info:", bus);
+                arrivalTime = "정보 없음"; // 또는 ""
               }
+            } else if (typeof bus === 'number') {
+              arrivalTime = `${bus}분`;
+            } else {
+              // 숫자도 객체도 아닌 경우 (undefined, null 등)
+              console.warn("Unexpected bus arrival time format:", bus);
+              arrivalTime = "정보 없음"; // 또는 ""
+            }
 
-              return (
-                <tr key={index}>
-                  <td>{bus['버스번호']}</td> {/* 백엔드 응답에 맞춰 '버스번호' 속성 사용 */}
-                  <td>{arrivalTime}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {data.alternative_path && (
-          <div className="alternative-route">
-            <h4>🚶 대체 경로</h4>
-            {/* 대체 경로 데이터 구조가 RouteComponent와 호환되는지 확인 필요 */}
-            <RouteComponent data={data.alternative_path} />
-          </div>
-        )}
-      </div>
-    );
-  };
+            return (
+              <tr key={index}>
+                <td>{data.available_buses && data.available_buses[index]}</td>
+                <td>{arrivalTime}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {data.alternative_path && (
+        <div className="alternative-route">
+          <h4>🚶 대체 경로</h4>
+          {/* 대체 경로 데이터 구조가 RouteComponent와 호환되는지 확인 필요 */}
+          <RouteComponent data={data.alternative_path} />
+        </div>
+      )}
+    </div>
+  );
 
 
-  const NoticeComponent = ({ data, openLinkInModal }) => (
+  const NoticeComponent = ({ data }) => (
     <div className="response-card notice">
-      <ReactMarkdown
-        components={{
-          a: ({ node, ...props }) => (
-            <a
-              {...props}
-              href={props.href}
-              onClick={openLinkInModal(props.href)}
-              style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
-            >
-              {props.children}
-            </a>
-          ),
-        }}
-      >
-        {data.response}
-      </ReactMarkdown>
+      <p className={data.response === "안녕하세요, 오늘은 어디 가시나요?" ? "greeting-text" : ""}>
+        {convertUrlsToLinks(data.response)}
+      </p>
     </div>
   );
 
@@ -652,7 +634,7 @@ function BusStop() {
              <div className="loading-indicator">
                <div className="spinner"></div>
                {/* 사용자 질문 표시 */}
-               <div className="loading-text">"{userQuestion}" 에 대해 답변을 준비 중입니다...</div>
+               <div className="loading-text">"{userQuestion}" 에 대해 답변을 준비 중입니다…</div>
              </div>
            </div>
         </div>
@@ -666,7 +648,7 @@ function BusStop() {
              {responseType === 'location' && <LocationComponent data={responseData} />}
              {responseType === 'route' && <RouteComponent data={responseData} />}
              {responseType === 'bus' && <BusComponent data={responseData} />}
-             {responseType === 'notice' && <NoticeComponent data={responseData} openLinkInModal={openLinkInModal} />}
+             {responseType === 'notice' && <NoticeComponent data={responseData} />}
            </div>
          </div>
        );
@@ -705,7 +687,7 @@ function BusStop() {
           await speakText(greetingText);
           // speakText의 onended 콜백에서 녹음 시작을 처리하므로 여기서는 추가 호출 불필요
           // await new Promise(resolve => setTimeout(resolve, 1000)); // 불필요한 대기 제거
-          // setTimeout(() => { ... }, 500); // speakText 내부에서 처리
+          // setTimeout(() => { … }, 500); // speakText 내부에서 처리
       } else {
           // 음소거 상태일 때는 인사말 표시만 하고 대기
           console.log("음소거 상태라 인사말만 표시합니다.");
@@ -750,12 +732,12 @@ function BusStop() {
 
       console.log(`긴급 버튼 신호 시뮬레이션 API 호출 (정류장 ID: ${busStopId})`);
       const response = await axios.post(
-        `${API_BASE_URL_MANAGER}/adminCall`
+        `${API_BASE_URL_MANAGER}/api/simulate-emergency/${busStopId}`
       );
 
       console.log("Emergency simulation response:", response.data);
       // 비상 모드 UI 표시 (새로고침 대신)
-      // setIsEmergency(true);
+      setIsEmergency(true);
        // setIsRefreshing(true); // 새로고침 대신 모달 표시
        // setTimeout(() => {
        //   setIsRefreshing(false);
@@ -764,7 +746,7 @@ function BusStop() {
     } catch (error) {
       console.error("Emergency alert failed:", error);
       // 에러 발생 시에도 비상 모드 UI 표시
-      //setIsEmergency(true);
+      setIsEmergency(true);
     }
   };
 
@@ -802,27 +784,10 @@ function BusStop() {
     }
   };
 
-  const closeLinkModal = () => {
-    setIsLinkModalOpen(false);
-    setLinkModalUrl('');
-  };
-
-
 
   // --- JSX 렌더링 ---
   return (
     <div className="app-container">
-
-
-      {/* Link Modal */}
-      <Modal isOpen={isLinkModalOpen} onClose={closeLinkModal}>
-        <iframe
-          src={linkModalUrl}
-          style={{ width: '100%', height: '100%', border: 'none' }}
-          title="웹사이트"
-        />
-      </Modal>
-
       {/* Status Bar (기존과 동일) */}
       <div className="status-bar">
         <img src={ciscoLogo} alt="Cisco Logo" className="cisco-logo" />
@@ -988,14 +953,20 @@ function BusStop() {
       {isEmergency && (
         <div className="emergency-overlay" onClick={handleCloseEmergency}>
           <div className="emergency-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>관리자 호출 버튼이 눌렸습니다!</h2>
+            <h2>비상 버튼이 눌렸습니다!</h2>
             <h2>관리자와 연락 시도중이니 잠시만 기다려 주십시오</h2>
           </div>
         </div>
       )}
+
+      {/* 모달 */}
+      <Modal isOpen={isEmergency} onClose={handleCloseEmergency}>
+        {/* 모달에 표시할 컴포넌트 렌더링 */}
+        {renderResponse()}
+      </Modal>
     </div>
-    
   );
 }
 
 export default BusStop;
+
