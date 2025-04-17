@@ -24,7 +24,7 @@
 ### 배포
 - Docker
 - ngrok
-- loacltunnel
+- localtunnel
 
 ## 요구사항
 - Docker 및 Docker Compose
