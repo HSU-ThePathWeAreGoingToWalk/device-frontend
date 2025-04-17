@@ -52,3 +52,25 @@ docker-compose up --build
 
 4. 브라우저에서 접속
 http://localhost:80
+
+
+___________________________________________________________________________________
+
+
+1. 저장소 클론
+```bash
+git clone https://github.com/HSU-ThePathWeAreGoingToWalk/device-frontend/tree/geonu
+```
+
+2. 필요 라이브러리 설치
+```bash
+npm install
+```
+
+3. 실행
+```bash
+npm install
+```
+
+4. 브라우저에서 접속
+http://localhost:3000
