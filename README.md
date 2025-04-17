@@ -13,7 +13,7 @@
 ![스크린샷 2025-04-17 174703](https://github.com/user-attachments/assets/2df31e80-b67b-4bab-af6c-0f73d9bcc9a1)
 
 
-## 🛠 기술 스택
+## 기술 스택
 
 ### 프론트엔드
 - React.js
@@ -25,14 +25,14 @@
 - Docker
 - Nginx
 
-## 📋 요구사항
+## 요구사항
 - Docker 및 Docker Compose
 - OpenAI API Key
 - Kakao Maps API Key
 - `.env` 파일 (개발 환경)
 - `.env.production` 파일 (배포 환경)
 
-## 🚀 실행 방법
+## 실행 방법
 
 1. 저장소 클론
 ```bash
@@ -52,4 +52,3 @@ docker-compose up --build
 
 4. 브라우저에서 접속
 http://localhost:80
-`
