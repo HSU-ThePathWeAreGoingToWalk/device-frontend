@@ -69,7 +69,7 @@ npm install
 
 3. 실행
 ```bash
-npm install
+npm start
 ```
 
 4. 브라우저에서 접속
