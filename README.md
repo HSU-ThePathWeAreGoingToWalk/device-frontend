@@ -23,7 +23,8 @@
  
 ### 배포
 - Docker
-- Nginx
+- ngrok
+- loacltunnel
 
 ## 요구사항
 - Docker 및 Docker Compose
