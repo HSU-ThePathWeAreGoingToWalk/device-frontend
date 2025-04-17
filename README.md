@@ -19,12 +19,11 @@
 - React.js
 - TypeScript
 - Kakao Maps API
-- OpenAI API
+- OpenAI STT
+- OpenAI TTS
  
 ### 배포
 - Docker
-- ngrok
-- localtunnel
 
 ## 요구사항
 - Docker 및 Docker Compose
