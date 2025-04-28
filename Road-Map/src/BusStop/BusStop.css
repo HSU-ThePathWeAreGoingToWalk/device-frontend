@@ -292,7 +292,7 @@
   }
   
   .realtime-text {
-    font-size: 25px;
+    font-size: 2rem;
     font-weight: bold;
     color: black; /* 텍스트 색상을 검정색으로 변경 */
     text-align: center;
@@ -320,7 +320,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-weight: bold;
-    font-size: 2.0rem;
+    /* font-size: 2.0rem; */
     color: black;
     text-align: center;
     width: 100%;
@@ -363,8 +363,8 @@
   }
   
   .response-container p {
-    font-weight: normal;
-    font-size: 2rem;
+    font-weight: bold;
+    font-size: 3rem;
     text-align: center;
     color: black; /* 텍스트 색상을 검정색으로 변경 */
   }
@@ -390,7 +390,7 @@
   /* 초기 메시지 스타일 */
   .response-container .initial-message {
     font-weight: bold; /* 볼드체 적용 */
-    font-size: 1.5rem; /* 텍스트 크기 키움 */
+    font-size: 5.5rem; /* 텍스트 크기 키움 */
     color: black;
   }
   
@@ -521,7 +521,8 @@
     overflow-wrap: break-word;
     word-break: keep-all;
     margin: 10px 0;
-    font-size: 1.4rem;
+    font-size: 2.4rem;
+    font-weight: bold;
 
     * {
         max-width: 100%;
@@ -530,7 +531,7 @@
 
     /* 공통 텍스트 스타일 */
     p, li, td, th {
-        font-size: 1.4rem;
+        font-size: 2.4rem;
         font-style: bold;
         color: black;
         margin: 0 0 10px;
@@ -545,7 +546,7 @@
         margin: 20px 0;
 
         .greeting-text {
-            font-size: 30px;
+            font-size: 40px;
             color: #049FD9FF;
             line-height: 1.5;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
@@ -571,7 +572,8 @@
         gap: 15px;
 
         .route-step {
-            font-size: 1.3rem;
+            font-size: 1.9rem;
+            font-weight: bold;
             line-height: 1.6;
             padding: 0 10px;
         }
@@ -628,12 +630,12 @@
 
 /* 초기 메시지 텍스트 */
 .initial-message {
-  font-size: 1.8rem !important;
+  font-size: 2.4rem !important;
 }
 
 /* 로딩 텍스트 */
 .loading-text {
-  font-size: 1.6rem !important;
+  font-size: 1.9rem !important;
 }
   
   /* 지도 컨테이너 (location, route에서 사용) */
@@ -859,21 +861,21 @@
     content: "대화 중지";
     color: white;
     font-weight: bold;
-    font-size: 30px;
+    font-size: 40px;
 }
 
 .voice-button.toggle-record:not(.recording)::after {
     content: "대화 시작";
     color: white;
     font-weight: bold;
-    font-size: 30px;
+    font-size: 40px;
 }
 /* 음소거 버튼 텍스트 추가 스타일 */
 .voice-button.mute::after {
     content: "음소거";
     color: #049FD9FF;
     font-weight: bold;
-    font-size: 30px;
+    font-size: 40px;
 }
 
 

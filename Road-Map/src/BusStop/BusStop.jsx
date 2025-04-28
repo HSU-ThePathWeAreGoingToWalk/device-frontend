@@ -16,7 +16,7 @@ import OpenAI from 'openai';
 import ReactMarkdown from 'react-markdown'; // ReactMarkdown import 추가
 
 // API 기본 URL 설정
-const API_BASE_URL = "https://discretion-avoid-proceedings-roger.trycloudflare.com"; // 챗봇 서버
+const API_BASE_URL = "https://penetration-lc-dream-cow.trycloudflare.com"; // 챗봇 서버
 
 const API_BASE_URL_MANAGER = "https://expansion-generators-calculation-breach.trycloudflare.com"; // 디바이스 백엔드 서버
 
@@ -890,9 +890,9 @@ function BusStop() {
                   title={isRecording ? "녹음 중지" : "대화 시작"}
                 >
                   {isRecording ? (
-                     <svg /* Stop icon */ xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#FFFFFF" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="6" width="12" height="12" rx="1" ry="1"/></svg>
+                     <svg /* Stop icon */ xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="#FFFFFF" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="6" width="12" height="12" rx="1" ry="1"/></svg>
                   ) : (
-                     <svg /* Mic icon */ xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /></svg>
+                     <svg /* Mic icon */ xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /></svg>
                   )}
                 </button>
                 {/* 음소거 버튼 */}
@@ -902,9 +902,9 @@ function BusStop() {
                   title={isMuted ? '음소거 해제' : '음소거'}
                 >
                   {isMuted ? (
-                     <svg /* Mute icon */ xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#049FD9FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
+                     <svg /* Mute icon */ xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#049FD9FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
                   ) : (
-                     <svg /* Unmute icon */ xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#049FD9FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></svg>
+                     <svg /* Unmute icon */ xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#049FD9FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></svg>
                   )}
                 </button>
               </div>
