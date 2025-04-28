@@ -298,7 +298,7 @@ function BusStop() {
         setIsSpeaking(false);
         // TTS 종료 후 음소거 상태가 아니면 자동으로 녹음 시작
         if (!isMuted) {
-          startRecordingWithDelay();
+          // startRecordingWithDelay();
         }
         // if (!isMuted) {
         //    setTimeout(() => {
@@ -364,9 +364,9 @@ function BusStop() {
       setRealtimeText("인식할 음성이 없습니다. 다시 말씀해주세요.");
        // 녹음 재시작 로직 (선택적)
        if (!isMuted && !isSpeaking) {
-         setTimeout(() => {
-           if (!isRecordingRef.current) startRecording();
-         }, 1000); // 1초 후 다시 녹음 시도
+        //  setTimeout(() => {
+        //    if (!isRecordingRef.current) startRecording();
+        //  }, 1000); // 1초 후 다시 녹음 시도
        }
       return;
     }
@@ -403,12 +403,12 @@ function BusStop() {
         await sendMessageToAPI(transcribedText);
       } else {
         setRealtimeText("다시 말씀해주세요");
-        startRecordingWithDelay(); // 오류 시 재시도
+        // startRecordingWithDelay(); // 오류 시 재시도
       }
     } catch (error) {
       console.error("OpenAI STT Error:", error);
       setRealtimeText("음성 인식 중 오류가 발생했습니다.");
-      startRecordingWithDelay(); // 오류 시 재시도
+      // startRecordingWithDelay(); // 오류 시 재시도
     } finally {
       setIsTranscribing(false); // 음성 인식 종료 상태
     }
@@ -433,12 +433,12 @@ function BusStop() {
     if (!message || message.trim() === "") {
       console.log("빈 메시지는 전송하지 않습니다.");
       // 빈 메시지 후 녹음 재시작
-       if (!isMuted && !isSpeaking) {
-         setTimeout(() => {
-           if (!isRecordingRef.current) startRecording();
-         }, 500);
-       }
-      return;
+      //  if (!isMuted && !isSpeaking) {
+      //    setTimeout(() => {
+      //      if (!isRecordingRef.current) startRecording();
+      //    }, 500);
+      //  }
+      // return;
     }
 
     setIsLoading(true); // 챗봇 응답 로딩 시작
@@ -512,9 +512,9 @@ function BusStop() {
          await speakText(errorMsg);
        } else {
          // TTS 실행 안될 시 녹음 재시작 로직
-         if (!isMuted && !isSpeaking && !isRecordingRef.current) {
-           setTimeout(() => startRecording(), 500);
-         }
+        //  if (!isMuted && !isSpeaking && !isRecordingRef.current) {
+        //    setTimeout(() => startRecording(), 500);
+        //  }
        }
     } finally {
       setIsLoading(false); // 챗봇 응답 로딩 종료
