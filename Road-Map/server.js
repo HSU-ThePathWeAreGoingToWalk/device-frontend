@@ -8,6 +8,7 @@ let greetingTriggered = false;
 
 app.post('/session-start', (req, res) => {
   greetingTriggered = true;
+  console.log(`전송 완료`);
   
   // 모든 연결된 클라이언트에 SSE 이벤트 전송
   clients.forEach(client => {

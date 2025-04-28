@@ -4,7 +4,6 @@
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
   "main": "index.js",
   "scripts": {
-    "preinstall": "npm install -g npm@10.8.2",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

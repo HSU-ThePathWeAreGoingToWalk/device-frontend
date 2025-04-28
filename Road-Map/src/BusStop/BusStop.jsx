@@ -16,8 +16,11 @@ import OpenAI from 'openai';
 import ReactMarkdown from 'react-markdown'; // ReactMarkdown import 추가
 
 // API 기본 URL 설정
-const API_BASE_URL = "https://fuzzy-steaks-wear.loca.lt";
-const API_BASE_URL_MANAGER = "https://90e0-58-230-197-51.ngrok-free.app" // 실제 API 서버 URL로 변경 필요
+const API_BASE_URL = "https://discretion-avoid-proceedings-roger.trycloudflare.com"; // 챗봇 서버
+
+const API_BASE_URL_MANAGER = "https://expansion-generators-calculation-breach.trycloudflare.com"; // 디바이스 백엔드 서버
+
+const API_BASE_URL_EXPRESS = "https://automatic-step-blah-aus.trycloudflare.com"; // 프론트 서버 (Express)
 
 // --- OpenAI 클라이언트 초기화 ---
 // !!! 보안 경고 !!!
@@ -228,7 +231,7 @@ function BusStop() {
 
   // SSE 인사 메시지 (기존 로직 유지)
   useEffect(() => {
-    const eventSource = new EventSource('https://public-cougars-smell.loca.lt/greeting-events');
+    const eventSource = new EventSource(API_BASE_URL_EXPRESS);
     eventSource.addEventListener('greeting', (e) => {
       const data = JSON.parse(e.data);
       if (data.action === 'start') {
