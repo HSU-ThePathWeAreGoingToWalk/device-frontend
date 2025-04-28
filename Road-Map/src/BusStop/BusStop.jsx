@@ -153,6 +153,24 @@ function BusStop() {
     }
   }, [isRecording]);
 
+  // 숫자 키 0 입력 감지를 위한 useEffect 추가
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.key === "0") {
+        console.log("숫자 키 0 입력 감지, startGreetingSequence 실행");
+        startGreetingSequence();
+      }
+    };
+
+    // 키보드 이벤트 리스너 등록
+    window.addEventListener("keydown", handleKeyPress);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 정리
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, []); // 빈 의존성 배열로 마운트 시 한 번만 등록
+
   const analyzeAudio = () => {
     if (analyserRef.current && dataArrayRef.current) {
       analyserRef.current.getFloatTimeDomainData(dataArrayRef.current);
